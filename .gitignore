@@ -1,0 +1,23 @@
+# Source code (managed separately by alb repo)
+src/
+
+# Dependencies
+node_modules/
+
+# Build outputs (generated)
+build/
+static/
+asset-manifest.json
+service-worker.js
+precache-manifest.*.js
+
+# OS
+.DS_Store
+**/.DS_Store
+
+# IDE credentials
+.vscode/sftp.json
+
+# Misc
+deploylog.txt
+*.log
