@@ -1,0 +1,78 @@
+
+export const makeCntbkReportHtmlMailString = (preview, pdfUrl, user, com, stdDate) => {
+  const [stdYear, stdMonth] = stdDate.split("-");
+  const nowYear = new Date().getFullYear();
+
+  const htmlString = (`
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html lang="ja" style="line-height: 1.15; -webkit-text-size-adjust: 100%;">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="format-detection" content="telephone=no, address=no, email=no, date=no">
+        <meta name="color-scheme" content="light" />
+        <title>あるふぁみメール</title>
+      </head>
+      <body style="margin: 0;">
+        <table style="width: 100%; background-color: #ffffff; color: #333333; font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Meiryo', sans-serif;">
+          <tr><td>
+            <table style="width: 100%;">
+
+              <!-- Header -->
+              <tr><td align="center" style="width: 100%; background-color: #00695c;">
+                <table class="header" style="max-width: 600px; width: 100%;">
+                  <tr><td style="width: 8px;"></td><td style="height: 8px;"></td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="color: #fff; font-weight: bold; text-align: center; font-size: 24px; line-height: 24px;">あるふぁみ</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="color: #fff; font-weight: bold; text-align: center; font-size: 12px; line-height: 12px;">Albatross for family.</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="height: 8px;"></td><td style="width: 8px;"></td></tr>
+                </table>
+              </td></tr>
+
+              <!-- Body -->
+              <tr><td align="center" style="width: 100%; background-color: #ffffff;">
+                <table class="main" style="max-width: 600px; width: 100%;">
+                  <tr><td style="width: 8px;"></td><td style="height: 8px;"></td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="font-size: 18px; line-height: 20px;">${user.pname} 様</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="font-size: 16px; line-height: 16px;">${user.name} 様</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="height: 12px;"></td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="font-size: 16px; line-height: 1.5em;">いつもご利用いただきありがとうございます。</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="font-size: 16px; line-height: 1.5em;">${com.sbname}から${stdYear}年${stdMonth}月ご利用分の${preview}が発行されました。</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="font-size: 16px; line-height: 1.5em;">このメールに添付されているPDFからご確認ください。</td><td style="width: 8px;"></td></tr>
+                  <tr><td style="width: 8px;"></td><td style="height: 12px;"></td><td style="width: 8px;"></td></tr>
+                  <tr><td style="height: 8px;"></td></tr>
+                </table>
+              </td></tr>
+
+              <!-- Footer -->
+              <tr>
+                <td align="center" style="width: 100%; background-color: #fff3e0;">
+                  <table class="footer" style="max-width: 600px; width: 100%;">
+                    <tr><td style="width: 8px;"></td><td class="margin16" style="height: 16px;"></td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 16px; font-weight: bold;">送信情報</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 14px; line-height: 1.5em;">本メールはアルバトロスからの自動送信メールです。</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 14px; line-height: 1.5em;">送信専用となります。本メールへの返信は対応致しかねますのでご了承下さい。</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="height: 8px;"></td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 16px; font-weight: bold;">事業所情報</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 14px; line-height: 1.5em;">法人名：${com.hname}</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 14px; line-height: 1.5em;">事業所名：${com.bname}</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 14px; line-height: 1.5em;">住所：${com.city}${com.address}</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td style="font-size: 14px; line-height: 1.5em;">電話番号：${com.tel}</td><td style="width: 8px;"></td></tr>
+                    <tr><td style="width: 8px;"></td><td class="margin8" style="height: 8px;"></td><td style="width: 8px;"></td></tr>
+                    <tr>
+                      <td style="width: 8px;"></td>
+                      <td align="center" style="font-size: 12px; color: #888888;">&copy; ${nowYear} Albatross for family. All Rights Reserved.</td>
+                      <td style="width: 8px;"></td>
+                    </tr>
+                    <tr><td style="width: 8px;"></td><td class="margin8" style="height: 8px;"></td><td style="width: 8px;"></td></tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td></tr>
+      </body>
+    </html>
+  `);
+
+  return htmlString.replaceAll("\n", "");
+}

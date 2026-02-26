@@ -1,5 +1,5 @@
-# Source code (managed separately by alb repo)
-src/
+# Archive (has its own git repo)
+src202602/
 
 # Dependencies
 node_modules/

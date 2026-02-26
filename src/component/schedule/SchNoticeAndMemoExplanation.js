@@ -1,0 +1,58 @@
+import React from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import { teal, blue } from '@material-ui/core/colors';
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
+
+const useStyles = makeStyles({
+  SchNoticeAndMemoExplanation: {
+    width: 'calc(100% - 200px)', margin: '32px 0 32px 200px',
+    '& .contents': {
+      width: '90%', maxWidth: 800, margin: '0 auto', fontSize: 12,
+      '& .icon': {fontSize: 16},
+      '& .notice, .memo': {
+        display: 'flex', alignItems: 'center', margin: 4
+      },
+      '& .notice': {color: teal[600]}, '& .memo': {color: blue[600]},
+    }
+  },
+});
+
+const getSch = (schedule, sch, uid) => {
+  if (sch) return sch;
+  else if (schedule["UID"+uid]) return schedule["UID"+uid];
+  else return {}; 
+}
+
+export const SchNoticeAndMemoExplanation = ({schedule, uid, sch}) => {
+  const classes = useStyles();
+
+  const userScheduleDt = getSch(schedule, sch, uid);
+  let existNotice = false;
+  let existMemo = false;
+  return null;
+  // Object.keys(userScheduleDt).some(dDate => {
+  //   if(!/^D[0-9]{8}$/.test(dDate)) return false;
+  //   const scheduleDt = userScheduleDt[dDate];
+  //   const notice = scheduleDt.notice;
+  //   if(!existNotice && notice) existNotice = true;
+  //   const memo = scheduleDt.memo;
+  //   if(!existMemo && memo) existMemo = true;
+  //   return existMemo && existNotice;
+  // });
+  if(!(existNotice || existNotice)) return null;
+  return(
+    <div className={classes.SchNoticeAndMemoExplanation}>
+      <div className='contents'>
+        {existNotice ?<div className='notice'>
+            <FiberManualRecordIcon className='icon'/>
+            <div>家庭連携加算、欠席加算の説明など</div>
+          </div> :null}
+        {existMemo ?<div className='memo'>
+            <FiberManualRecordIcon className='icon'/>
+            <div>事業所内の連絡事項</div>
+          </div> :null}
+      </div>
+    </div>
+  )
+}
+

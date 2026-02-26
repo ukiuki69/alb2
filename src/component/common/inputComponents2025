@@ -1,0 +1,84 @@
+import { Button, CircularProgress, Fade, FormControl, IconButton, InputLabel, makeStyles, MenuItem, Select, TextField, withStyles } from '@material-ui/core';
+import { grey, red, teal } from '@material-ui/core/colors';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import axios from 'axios';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { endPoint, getTemplate, recentUserStyle, sendPartOfSchedule, setRecentUser, univApiCall } from '../../albCommonModule';
+import { getUisCookie, uisCookiePos, makeUrlSearchParams, convHankaku, formatDate } from '../../commonModule';
+import { DAY_LIST, getDataType, getScheduleLockPerDDate, getScheduleUsagePerDDate } from '../../hashimotoCommonModules';
+import RadioButtonUncheckedIcon from '@material-ui/icons/RadioButtonUnchecked';
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
+
+import CloseIcon from '@material-ui/icons/Close';
+import PictureAsPdfIcon from '@material-ui/icons/PictureAsPdf';
+import HighlightOffIcon from '@material-ui/icons/HighlightOff';
+import { useSelector } from 'react-redux';
+import { checkValueType } from '../dailyReport/DailyReportCommon';
+import CheckIcon from '@material-ui/icons/Check';
+import { AlbHMuiTextField } from './HashimotoComponents';
+
+
+export const AlbYTimeInput = (props) => {
+  const {
+    label, defaultTime="00:00", hide=false, width=80, maxTime, minTime, 
+    required=false,
+    ...etcProps
+  } = props;
+  const [time, setTime] = useState(defaultTime);
+  const [error, setError] = useState(false);
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    if(!/^[\d\uFF10-\uFF19]*([:：][\d\uFF10-\uFF19]*)?$/.test(value)) return;
+    if(!/^[\d\uFF10-\uFF19]{0,4}$/.test(value.replace(/[:：]/g, ""))) return;
+    setTime(value);
+    if(props.setTime) props.setTime(value);
+  }
+
+  const handleBlur = (e) => {
+    const value = e.target.value;
+    if(!value) return;
+    const halfWidthValue = value.replace(/[\uFF10-\uFF19：]/g, function(char) {
+      // 全角数字を半角数字に変換
+      if (char >= '\uFF10' && char <= '\uFF19') {
+        return String.fromCharCode(char.charCodeAt(0) - 0xFF10 + 0x30);
+      }
+      // 全角の「：」を半角の「:」に変換
+      if (char === '：') {
+        return ':';
+      }
+    });
+    let padStartedValue = halfWidthValue;
+    if(padStartedValue.includes(":")) padStartedValue = padStartedValue.padStart(5, '0');
+    else padStartedValue = padStartedValue.padStart(4, '0');
+    let [hours="", minutes=""] = padStartedValue.split(":");
+    while(hours.length >= 3){
+      minutes = hours.slice(-1) + minutes;
+      hours = hours.slice(0, -1);
+    }
+    while(minutes.length >= 3){
+      hours = hours + minutes.slice(0, 1);
+      minutes = minutes.slice(1);
+    }
+    const adjustedValue = hours.padStart(2, "0") + ":" + minutes.padStart(2, "0");
+    console.log(adjustedValue)
+    setError(!/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(adjustedValue));
+    setTime(adjustedValue);
+    if(props.setTime) props.setTime(adjustedValue);
+    if((maxTime && adjustedValue > maxTime) || (minTime && adjustedValue < minTime)) setError(true);
+  }
+
+  return (
+    <TextField
+      label={label}
+      value={props.time ?? time}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      style={{ ...props.style, visibility: hide ? "hidden" : "visible", width: width }}
+      error={error}
+      helperText={error ? "時刻が不正" : ""}
+      required={required}
+      {...etcProps}
+    />
+  );
+};

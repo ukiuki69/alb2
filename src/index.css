@@ -1,0 +1,1908 @@
+@charset "utf-8";
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+  /* text-align: justify; */
+  /* font: inherit; */
+}
+body{
+  background-color: #fff;
+  line-height: 1;
+	color:#111;
+  font-family: Meiryo, メイリオ, 'Hiragino Kaku Gothic Pro', 
+    'ヒラギノ角ゴ Pro W3', Osaka, 'MS PGothic', 
+    arial, helvetica, sans-serif;
+}
+
+address, blockquote, center, div, dl, fieldset, form, h1, h2, h3, h4, h5, h6, hr, noframes, noscript, ol, p, pre, table, ul{
+  box-sizing: border-box;
+}
+
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+a {cursor: pointer;}
+/* スクロールバー */
+::-webkit-scrollbar{
+  width: 6px;
+}
+::-webkit-scrollbar-track{
+  background: #fff;
+  border: none;
+  border-radius: 2px;
+  box-shadow: inset 0 0 2px #777; 
+}
+::-webkit-scrollbar-thumb{
+  background: #ccc;
+  border-radius: 2px;
+  box-shadow: none;
+}
+
+#root {
+  position: relative;
+}
+
+@media print{
+  .no_print{
+    display: none;
+  }
+}
+/* スクロールバーの幅の分を合わせる*/
+.scroll-y-filler{
+  width: 6px;
+  background-color: none;
+}
+
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+a {
+	text-decoration: none;
+	color: #333;
+}
+.clear{
+	clear:both;
+}
+
+/* .week{
+  opacity: .6;
+} */
+/* ここから上はテンプレ的設定 */
+
+/* 印刷非表示 */
+
+.headBar{
+  padding: 6px;
+  background-color: #00695C;
+  color: #eee;
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 1080px;
+  position: fixed;
+  top: 0;
+  width: 100vw;
+  z-index: 999;
+  justify-content: space-between;
+}
+.headBar .leftSide{
+  display: flex;
+  width: 75%;
+  justify-content: flex-start;
+}
+
+
+.headBar .leftSide > div:last-child{
+  margin-left: 16px;
+}
+/* .headBar .leftSide > div:first-child{
+  margin-left: 0px;
+} */
+.headBar .titleWrapper{
+  padding: 0;
+  /* width: 30%; */
+  /* min-width: 200px; */
+  margin-top: 6px;
+}
+.headBar .drowerButton{
+  margin-top: 4px;
+}
+.headBar .comWrapper{
+  width: 24%;
+  min-width: 200px;
+  font-size: .8rem;
+  line-height: 1.4;
+  padding-top: 4px;
+}
+.headBar .comWrapper > div{
+  text-align: right;
+  padding: 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.headBar .links{
+  width: 100%;
+  margin: 8px 0 0;
+}
+
+.headBar .title{
+  font-size: 1.2rem;
+  color: rgb(210, 248, 203);
+  letter-spacing: .4rem;
+}
+
+.headBar .subtitle{
+  font-size: .8rem;
+  margin: 0 0 8px;
+  color: rgb(210, 248, 203);
+}
+
+.headBar .menuItem{
+  margin-right: .6rem;
+  color: #eee;
+}
+
+.headBar .monthDisplay{
+  display: inline-flex;
+}
+
+.headBar .monthDisplay > div{
+  height: 1.6rem;
+  /* font-size: 1.1rem; */
+  font-size: 1.1rem;
+}
+.headBar .monthDisplay .medium{
+  padding: .45rem .2rem 0;
+}
+.headBar .monthDisplay .small{
+  font-size: .6rem;
+  padding-top: .8rem;
+}
+
+
+
+.AppPage{
+  padding: 6px;
+}
+
+.flxRow, .flxTitle{
+  display: flex;
+  position: relative;
+  page-break-inside: avoid;
+}
+
+.flxTitle{
+  border-bottom: #00695C 1px solid;
+  /* border-top:rgb(204, 204, 204) 1px solid; */
+  /* overflow-y: scroll; */
+}
+
+.flxRow{
+  /* border-bottom: rgb(202,202,217) 1px solid; */
+  border-bottom: #ddd 1px solid;
+}
+
+.flxRow>div, .flxTitle>div{
+  padding: 6px 4px 4px;
+  font-size: 1rem;
+  /* border-right: rgb(204, 204, 204) 1px solid; */
+}
+
+.flxRow.oddColor>div:nth-child(odd), .flxTitle.oddColor>div:nth-child(odd){
+  background-color: #f5f5f5;
+}
+
+.flxRow>div.noBkColor, .flxTitle>div.noBkColor,
+.flxRow .noBkColor, .flxTitle .noBkColor{
+  background-color: transparent;
+}
+
+
+/* .flxRow>div:first-child, .flxTitle>div:first-child{
+  border-left:rgb(204, 204, 204) 1px solid;
+} */
+
+.flxRow>div.lower, .flxTitle>div.lower{
+  display: flex;
+  align-items: flex-end;
+}
+.flxRow>div.lowerRight, .flxTitle>div.lowerRight{
+  display: flex;
+  align-items: flex-end;
+  justify-content: end;
+}
+
+.flxRow>div.flxCenter, .flxTitle>div.flxCenter{
+  display: flex;
+  justify-content: center;
+}
+
+.flxRow .small, .flxTitle .small{
+  font-size: .8rem;
+}
+.flxRow .large, .flxTitle .large{
+  font-size: 1.2rem;
+}
+.flxRow .small.kariHno{
+  display: inline-block;
+  background-color: #ffcdd2;
+  padding: 0 1rem;
+}
+
+.flxRow .flxVirtical, .flxTitle .flxVirtical{
+  flex-direction: column;
+}
+
+.flxRow .small.rowInformation{ 
+  padding: 6px 0 0;
+}
+
+
+.flxRow>.w03,.flxTitle>.w03{flex: 1 1  3%;width: 3%;}
+.flxRow>.w04,.flxTitle>.w04{flex: 1 1  4%;width: 4%;}
+.flxRow>.w05,.flxTitle>.w05{flex: 1 1  5%;width: 5%;}
+.flxRow>.w06,.flxTitle>.w06{flex: 1 1  6%;width: 6%;}
+.flxRow>.w07,.flxTitle>.w07{flex: 1 1  7%;width: 7%;}
+.flxRow>.w08,.flxTitle>.w08{flex: 1 1  8%;width: 8%;}
+.flxRow>.w10,.flxTitle>.w10{flex: 1 1 10%;width: 10%;}
+.flxRow>.w13,.flxTitle>.w13{flex: 1 1 13%;width: 13%;}
+.flxRow>.w15,.flxTitle>.w15{flex: 1 1 15%;width: 15%;}
+.flxRow>.w20,.flxTitle>.w20{flex: 1 1 20%;width: 20%;}
+.flxRow>.w25,.flxTitle>.w25{flex: 1 1 25%;width: 25%;}
+.flxRow>.w30,.flxTitle>.w30{flex: 1 1 30%;width: 30%;}
+.flxRow>.w35,.flxTitle>.w35{flex: 1 1 35%;width: 35%;}
+.flxRow>.w40,.flxTitle>.w40{flex: 1 1 40%;width: 40%;}
+.flxRow>.w45,.flxTitle>.w45{flex: 1 1 45%;width: 45%;}
+.flxRow>.w50,.flxTitle>.w50{flex: 1 1 50%;width: 50%;}
+.flxRow>.w60,.flxTitle>.w60{flex: 1 1 60%;width: 60%;}
+.flxRow>.w70,.flxTitle>.w70{flex: 1 1 70%;width: 70%;}
+.flxRow>.w100,.flxTitle>.w100{flex: 1 1 100%;width: 100%;}
+.flxRow>.chkBox,.flxTitle>.chkBox,
+.flxRow>.wmin,.flxTitle>.wmin{flex: 0 0 32px;width: 32px;}
+.flxRow>.wtel,.flxTitle>.wtel{flex: 0 0 120px;width: 120px;}
+.flxRow>.wdate,.flxTitle>.wdate{flex: 0 0 100px;width: 100px;}
+.flxRow>.wpostal,.flxTitle>.wpostal{flex: 0 0 80px;width: 80px;}
+.flxRow>.wzen4,.flxTitle>.wzen4{flex: 0 0 68px;width: 68px;}
+.flxRow>.wzen3,.flxTitle>.wzen3{flex: 0 0 52px;width: 52px;}
+.flxRow>.wzen8,.flxTitle>.wzen8{flex: 0 0 128px;width: 128px;}
+.flxRow>.wzen10,.flxTitle>.wzen10{flex: 0 0 160px;width: 160px;}
+.flxRow .center, .flxTitle .center{text-align: center;}
+.flxRow .right, .flxTitle .right{text-align: right;}
+
+.AppPage{
+  width: 90vw;
+  min-width: 1080px;
+  margin: 0 0 0 5vw;
+}
+
+
+.AppPage.fixed{
+  margin: 0;
+  position: fixed;
+  width: 90vw;
+  min-width: 1080px;
+  top:47px;
+  left:5vw;
+  z-index: 998;
+  background-color: #fff;
+  padding-bottom: 0;
+}
+
+
+.AppPage.fixed.userLst{
+  top:84px;
+}
+.AppPage.fixed.schedule, .AppPage.fixed.schWeekly {
+  top: 84px;
+  padding-top: 6px;
+  min-width: 1010px;
+}
+
+.AppPage.scroll {
+  padding-top: 172px;
+  padding-bottom: 80px;
+}
+
+.AppPage.scroll.userLst {
+  padding-top: 135px;
+  
+}
+@media print{
+  .AppPage.scroll.userLst {
+    padding-top: 0;
+    
+  }
+}
+
+.AppPage.scroll.schedule {
+  padding-top: 157px;
+  min-width: 1010px;
+}
+.weeklyButtonGrp{
+  display: flex;
+  justify-content: center;
+}
+
+@media print{
+  .AppPage.fixed.schedule{
+    top: 20px;
+    width: 90vw;
+    left:5vw;
+    position: relative;
+    margin-left: 0;
+  }
+  .AppPage.scroll.schedule {
+    padding-top: 22px;
+  }
+  .AppPage.scroll {
+    padding-top: 0px;
+    padding-bottom: 0px;
+  }
+  .AppPage.fixed{
+    margin: 0;
+    position: static;
+    width: 90vw;
+    min-width: 1080px;
+    margin-left: 5vw;
+  }
+  .weeklyButtonGrp{
+    display:none;
+  }
+  
+}
+
+.AppPage.schByUsers{
+  padding-top: 68px;
+}
+.AppPage.schByUsers.flex{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* @media screen and (max-width:1080px){
+  .AppPage.fixed{
+    left: 0;
+  }
+  .AppPage{
+    margin: 0;
+  }
+} */
+
+.AppPage.schdule .titleHover{
+  background-color: rgb(226, 241, 223);
+}
+
+.AppPage .userLst{
+  max-width: 1200px;
+}
+
+/* ユーザー別 7曜形式*/
+/* 週間予定 */
+.schByUsers .monthWrapper .month{
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;;
+}
+
+.schByUsers .monthWrapper .week{
+  display: flex;
+}
+
+.schByUsers .monthWrapper .day{
+  width: 14.285714%;
+  /* padding: 4px; */
+}
+
+.schByUsers .monthWrapper .dayLabel,
+.schByUsers .monthWrapper .weekLabel{
+  text-align: center;
+  padding:4px;
+}
+
+.schPillarOuter{
+  display: flex;
+  width: 90%;
+  justify-content: space-between;
+  max-width: 900px;
+  margin: 0 auto;
+  padding-top: 4px;
+  padding-bottom: 12px;
+}
+@media print{
+  .schPillarOuter{
+    flex-wrap: wrap;
+  }
+}
+.schPillarOuter.week{
+  margin: 20px auto;
+
+}
+.schPillarOuter:last-child{
+  padding-bottom: 56px;
+}
+.schPillarOuter.title{
+  margin: 16px auto 0;
+  padding-top: 0px;
+  padding-bottom: 0;
+}
+
+.schPillar{
+  width: 13.5%;
+}
+.schByUsers .monthWrapper .dayLabel,
+.schPillar .dayLabel
+{
+  background-color: #eee;
+}
+
+.schPillar .date{
+  font-size: .8rem;
+  text-align: center;
+  padding: 4px 0;
+}
+.schPillar .date.outOfMonth{
+  color: #999;
+}
+
+
+.schPillar .date::after{
+  content: '';
+  display: block;
+  height: 1px;
+  background-color: #00b6a1;
+  margin: 2px auto 4px;
+}
+
+.schPillar .date.schooloff::after{
+  background-color:#e77052;
+}
+.schPillar .date.off::after{
+  background-color:#546e7a;
+}
+.schPillar .date.outOfMonth::after{
+  background-color: #999;
+}
+
+
+.schByUsers .monthWrapper .content,
+.schPillar .dateContent
+{
+  min-height: 72px;
+  padding:4px;
+  font-size: 0.8rem;
+  position: relative;
+}
+.schPillar .dateContent{
+  padding-top: 2px;
+  margin-bottom: 6px;
+}
+
+
+.schPillar .user{
+  padding: 6px 0 2px 8px;
+  /* text-align: center; */
+  margin: 0 auto 4px;
+  /* border: #666 1px solid; */
+  border-radius: 2px;  
+
+}
+
+
+/* .schByUsers .monthWrapper .content .inner, */
+.schPillar .content .inner
+{
+  display: flex;
+}
+
+/* .schByUsers .monthWrapper .content .inner .icon, */
+.schPillar .content .inner .icon
+{
+  width: 25%;
+}
+/* .schByUsers .monthWrapper .content .inner .icon svg, */
+.schPillar .content .inner .icon svg
+{
+  font-size: 1.1rem;
+}
+
+/* .schByUsers .monthWrapper .content .inner .icon.fa, */
+.schPillar .content .inner .icon.fa
+{
+  font-size: .9rem;
+  padding-right: .2rem;
+}
+
+/* .schByUsers .monthWrapper .content .inner .text, */
+.schPillar .content .inner .text
+{
+  width: 75%;
+  display: flex ;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* .schByUsers .monthWrapper .content .transfer svg, */
+.schPillar .content .transfer svg
+{
+  font-size: .7rem;
+  vertical-align: top;
+  /* margin-inline-start: .2rem;
+  margin-inline-end: .2rem; */
+}
+
+.flxRow .inNameVol{
+  display: inline-block;
+  width: 20px;
+  margin: 0;
+  text-align: right;
+}
+.flxRow .inNameVol.namerator{
+  width: 35px;
+}
+
+
+.flxRow .counter{
+  display: inline-block;
+  border-bottom: #00000000 1px solid;
+  margin-left: 4px;
+}
+.flxRow .counter.over{
+  border-bottom: #b71c1c 1px solid;
+  color: #b71c1c;
+  font-weight: bold;
+}
+
+.flxTitle .dateTitle{
+  position: relative;
+  cursor: pointer;
+  /* flex-direction: column; */
+}
+
+.flxTitle .dateTitle .schDailyContUnker{
+  position: absolute;
+  flex:1;
+  text-align: center;
+  top: 0;
+  right:0;
+  padding: 12px 0px 4px;
+  background-color: #fff;
+  opacity: 0;
+  cursor: pointer;
+  transition: .4s;
+  font-size: 1.6rem;
+}
+
+.flxTitle .dateTitle:hover .schDailyContUnker{
+  opacity: .6;
+  text-shadow: #fff 0 0 3px;
+}
+
+
+.flxTitle .dateTitle .center{
+  width: 100%;
+}
+.flxTitle .dateTitle .totalOfDay{
+  border-top:#ddd 1px solid;
+  width: 100%;
+  text-align: right;
+  margin: 2px 0;
+  padding: 2px 0 1px;
+  border-bottom: #ffffff00 1px solid;
+}
+
+.flxTitle .dateTitle .totalOfDay.higher {
+  font-weight: bold;
+  color: #01579b;
+  border-bottom: #2196f3 1px solid;
+}
+.flxTitle .dateTitle .totalOfDay.over {
+  font-weight: bold;
+  color: #b71c1c;
+  border-bottom: #ef5350 1px solid;
+  /* background-color: #ef9a9a; */
+}
+
+.flxTitle .dateTitle .dAddiction{
+  text-align: center;
+  color: #26a69a;
+  font-size: .6rem;
+  width: 100%;
+  height: .6rem
+}
+/* .tabelBodyWrapper{ */
+  /* overflow-y: scroll; */
+  /* max-height: calc(100vh - 235px); */
+  /* padding-bottom: 80px; */
+/* } */
+
+.userLst .tabelBodyWrapper{
+  /* max-height: calc(100vh - 225px); */
+  padding-bottom: 32px;
+}
+
+.scdRow .dateCell{
+  position: relative;
+  transition: .4s;
+}
+.scdRow .dateCell .useChecked{
+  position: absolute;
+  top:0px;
+  left:-.8px;
+  border-bottom: 10px solid transparent;
+  border-left: 10px solid #00695C88;
+}
+
+
+.scdRow .dateCell.mwfClass ,.flxTitle .dateTitle.dateTitle.mwfClass {
+  background-color: #f5f5f5;
+}
+.scdRow .dateCell.sunClass ,.flxTitle .dateTitle.dateTitle.sunClass {
+  background-color: #f8eac2;
+}
+
+.scdRow .dateCell.mwfClass.schoolOff ,
+.flxTitle .dateTitle.dateTitle.mwfClass.schoolOff {
+  background-color: #ffe9d0;
+}
+
+.scdRow .dateCell.schoolOff.sunClass,
+.flxTitle .dateTitle.dateTitle.schoolOff.sunClass {
+  background-color: #fbe6ef;
+}
+
+
+.scdRow .dateCell.off ,.flxTitle .dateTitle.dateTitle.off{
+  background-color: rgb(202,202,217);
+}
+
+
+.scdRow .dateCell.schoolOff ,.flxTitle .dateTitle.dateTitle.schoolOff{
+  background-color: rgb(255, 241, 226);
+}
+
+.scdRow .dateCell.hoverAddRemove:hover{
+  background-color: #fad7e3;
+}
+.scdRow .dateCell.hoverAddEdit:hover{
+  background-color: #d3eeec;
+}
+
+/* 欠席のとき */
+.scdRow .dateCell.absensed div{
+  opacity: .8;
+}
+
+/* 欠席アイコン */
+.scdRow .dateCell .dateCellAbsenceIcon{
+  position: absolute;
+  top: 2px;
+  color: #8f0318;
+  display: none;
+}
+.scdRow .dateCell.absensed .dateCellAbsenceIcon{
+  display: block;
+  opacity: 1;
+}
+
+.scdRow .dateCell div{
+  text-align: center;
+  line-height: 60%;
+}
+.scdRow .dateCell .dateCellInner{
+  align-self: stretch;
+  width: 95%;
+  border-radius: 2px;
+  background-color: rgb(21, 58, 160);
+}
+
+.scdRow .dateCell i{
+  font-size: .6rem;
+  color: #999;
+}
+
+.scdRow .dateCell i.offSchool{
+  color: #e77052;
+}
+
+
+.scdRow .dateCell .num{
+  font-size: .6rem;
+  color: #666;
+  font-weight: bold;
+}
+
+.scdRow .scdRowUserTitle{
+  position: relative;
+  border-right: 1px #ddd solid;
+}
+
+.scdRow .scdRowUserTitle .name{
+  position: relative;
+}
+
+
+.scdRow .scdRowUserTitle .uaddiction{
+  display: inline-block;
+  padding: .0 0 0 .4rem;
+  font-size: .6rem;
+  color: #00b6a1;
+}
+
+.scdRow .kanriType{
+  /* position: relative;
+  display: inline-block; */
+  font-size: .7rem;
+  font-weight: bold;
+  /* padding: .25rem .2rem .15rem .2rem; */
+  color: #26a69a;
+  /* color: #fff; */
+  /* background-color: #26a69a; */
+  /* margin: 0rem 0 0 .2rem;
+  top: -.1rem;
+  border-radius: 2px; */
+
+}
+/* 協力事業所は色を変える */
+.scdRow .kanriType.kyo{
+  color: #2196f3;
+}
+
+.scdRow .scdRowUserTitle .SchUserContUnker{
+  position: absolute;
+  top: 0;
+  right:0;
+  padding: 8px;
+  opacity: 0;
+  cursor: pointer;
+  transition: .4s;
+  font-size: 1.6rem;
+  width: 138px;
+  text-align: right;
+}
+
+.scdRow .scdRowUserTitle:hover .SchUserContUnker{
+  opacity: .6;
+}
+/* フォントオーサムのアイコンをずらして重ねる */
+.dateCell .doubleIcon{
+  margin-left: -.5rem;
+  letter-spacing: -.5rem;
+  text-shadow: #fff -1px -1px 1px;
+}
+
+.dateCell i.faint{
+  color: #999;
+}
+
+/* Calendar設定 */
+.AppPage.schedule.calWrapp{
+  padding: 76px 0 0 0;
+}
+.AppPage.schedule.calWrapp .cld{
+  width: 600px;
+  margin: 24px auto;
+}
+
+
+
+/* スケジュール拡張行 */
+.AppPage.schdule .SchExRowContent{
+  padding: 6px 6px 6px 0;
+  background-color: rgb(211, 211, 211);
+  border-bottom:rgb(156, 156, 156) 1px solid;
+
+}
+
+.AppPage.schdule .SchExRowContent .contOuterWrapper,
+.AppPage.schdule .SchExRowContent .triangelWrapper
+{
+  display: flex;
+}
+.AppPage.schdule .SchExRowContent .spacer{
+  flex:0 2;
+
+}
+.AppPage.schdule .SchExRowContent .contOuterWrapper .contWrapper
+{
+  flex:1 0 auto;
+}
+
+.AppPage.schdule .SchExRowContent .triangele{
+  text-align: center;
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper{
+  display: flex;
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper .remaining{
+  flex: 1;
+}
+.AppPage.schdule .SchExRowContent .contWrapper .middle{
+  box-shadow: #999 0 2px 2px;
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper .inner{
+  padding: 4px 6px;
+  background-color: #fff;
+  width:17rem;
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper .inner>div{
+  padding: 3px 0;
+  font-size: 90%;
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper .inner .houkagoOrNot {
+  margin-inline-start: 1rem;
+}
+
+.AppPage.schdule .SchExRowContent .exrowIcon {
+  color: #00695C;
+  width: 1rem;
+  margin-inline-end: .4rem;
+}
+
+.AppPage.schdule .SchExRowContent .exrowTriangle {
+  color: #00695C;
+  transform:scale(1.7, 1.0)
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper .controle{
+  padding: 0px 0px;
+  text-align: center;
+  display: flex;
+  justify-content: space-around;
+  background-color: #00695C;
+}
+
+.AppPage.schdule .SchExRowContent .contWrapper .controle i{
+  padding: 8px 0;
+  display: block;
+  color: #fff;
+  flex: 1;
+  cursor: pointer;
+}
+
+/* 時間設定 */
+.SchExRowContent .timeInstructer{
+  display: flex;
+}
+.SchExRowContent .timeSetter{
+  display: block;
+  position: relative;
+  /* height: 1rem; */
+  width: 3.5rem;
+}
+
+.SchExRowContent .timeInstructer .timesConnect{
+  width: 2rem;
+  text-align: center;
+}
+
+
+.SchExRowContent .timeSetter .timeSetterController{
+  position: relative;
+  width: 100%;
+  /* top: 0.1rem;
+  left: 0; */
+  /* background-color: #00695C;
+  color: #fff; */
+  /* width: 140px;
+  height: 30px; */
+}
+.SchExRowContent .timeSetter .timeSetterController .row{
+  width: 100%;
+  display: flex;
+
+}
+
+.SchExRowContent .timeSetter .timeSetterController .click{
+  padding: 4px;
+  color: #00695C;
+}
+.SchExRowContent .timeSetter .timeSetterController .close{
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: 2rem;
+  height:1.5rem;
+}
+
+.SchExRowContent .timeSetter .timeSetterController .row .small{
+  font-size: .7rem;
+  padding-top: 6px;
+}
+
+.SchExRowContent .timeSetter .timeSetterController .space{
+  margin: 4px 6px;
+}
+.SchExRowContent .actualCost .item{
+  display:inline-block;
+  margin-inline-end: .5em;
+  position: relative;
+  height:1rem;
+}
+
+.SchExRowContent .actualCost .item .tip{
+  position: absolute;
+  padding: .5rem;
+  background-color: rgb(226, 226, 214);
+  border-radius: 2px;
+  box-shadow: #999 0 1px 2px;
+  width: 6rem;
+  display: none;
+}
+
+.SchExRowContent .actualCost .item:hover .tip{
+  display: block;
+}
+
+.schDialog{
+  min-width: 300px;
+}
+
+/* .schDialog .dialogTitle{
+  padding: 8px 0 4px;
+  text-align: center;
+  font-size: 1.2rem;
+  border-bottom: #ddd 1px solid;
+} */
+.schDialog .date, .dialogUser{
+  text-align: center;
+  font-size: .8rem;
+  text-align: center;
+  padding: 4px 0 0;
+}
+
+.schDialog .listItem{
+  padding: 8px 40px;
+}
+.schDialog .listItem .text{
+  padding-inline-start: 4px;
+}
+
+.schDialog form.addiction{
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 800px;
+  padding: 8px 16px;
+}
+
+.formTextWrapper {
+  padding: 16px;
+  margin: 0 0 16px 0;
+  border: #00b6a166 1px solid;
+  border-radius: 4px;
+}
+
+.formTextWrapper > div{
+  font-size: .9rem;
+  padding: 4px 0;
+  line-height: 1.5rem;
+}
+
+/* ページ内ナビゲーション */
+.AppPage .pageNav{
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.AppPage .pageNav .navLink{
+  cursor: pointer;
+  padding: 6px 4px 4px;
+  border-radius: 2px;
+  box-shadow: rgb(156, 156, 156) 0px 1px 2px;
+  background-color: rgb(218, 224, 216);
+}
+.AppPage .pageNav .navLink .small{
+  font-size: .7rem;
+}
+
+.AppPage .pageNav .selectService{
+  display: flex;
+  padding: 4px 8px 3px;
+}
+
+.AppPage .pageNav .selectService .item{
+  border-bottom: rgba(109, 88, 88, 0) 1px solid;
+  padding: 3px;
+}
+
+.AppPage .pageNav .selectService .item.current{
+  border-bottom: rgb(29,102,29) 1px solid;
+}
+
+.AppPage .pageNav .modalAnc{
+  padding: 4px 8px 3px;
+}
+
+.AppPage .pageNav .modalAnc>div{
+  padding: 3px;
+}
+.AppPage .pageNav a.menuItem{
+  display: block;
+  /* padding: 7px 11px 6px; */
+  padding: 2px 6px 0px;
+}
+
+.AppPage .pageNav .buttonWrapperPN{
+  /* padding: 7px 11px 6px; */
+  padding: 2px 6px 0px;
+  
+}
+
+.AppPage .pageNav .month{
+  padding: 7px 2px 6px;
+  text-align: center;
+}
+.pageNav .month .small, .flxTitle .month .small{
+  font-size: .7rem;
+}
+
+.pageNav .occuRate, .flxTitle .occuRate{
+  padding: 8px;
+}
+
+.flxTitle .occuRate{
+  position: fixed;
+  padding: 4px;
+}
+
+.pageNav .occuRate .rate .small, .flxTitle .occuRate .rate .small{
+  font-size: .7rem;
+
+}
+
+.pageNav .occuRate .detail, .flxTitle .occuRate .detail{
+  font-size: .7rem;
+}
+
+/* モーダル関連 */
+.modalClose{
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 1.5rem;
+  /* padding: .2rem; */
+  color: #00695C;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+}
+/* カレンダー関連 */
+/* .cld{
+  width: 90%;
+  max-width: 600%;
+  margin: 0 auto;
+} */
+
+.cld .cldTitle{
+  border-bottom: #00695C 1px solid;
+  color: #00695C;
+  font-weight: bold;
+  font-size: 1.2em;
+  padding: 4px 0 2px;
+  text-align: center;
+}
+
+.cld .cldBody{
+  width: 90%;
+  margin:10px auto 8px;
+}
+
+.cld .cldBodyRow{
+  display: flex;
+}
+
+.cld .cldBodyRow>div{
+  width:14.2857%;
+  text-align: center;
+  
+}
+
+.cld .oneDay{
+  position: relative;
+  padding-top: .8em;
+  height: 2.5rem;
+  margin: 1px;
+}
+
+.cld .oneDay.schoolOff , .AppPage.schByUsers .monthWrapper .schoolOff{
+  background-color: rgb(248, 227, 203);
+}
+.cld .oneDay.off, .AppPage.schByUsers .monthWrapper .off{
+  background-color: rgb(202,202,217)
+}
+.cld .oneDay.schoolOff, .cld .oneDay.weekday{
+  cursor: pointer;
+}
+
+.cld .clenderDaysInner{
+  height: 2.5rem;
+  position: relative;
+  top:-1rem;
+}
+
+.cld .clenderLower{
+  height: 40px;
+}
+.cld .controlewrapper{
+  padding: 5px 0;
+  text-align: center;
+}
+
+/* フォーム関連まとめる予定 */
+label.radioWrapper, span.radioWrapper{
+  padding: 5px 10px;
+  background-color:#fff;
+  margin-inline-end: 8px;
+  border-bottom: #00695C 2px solid;
+  cursor: pointer;
+}
+label.radioWrapper:last-child, span.radioWrapper:last-child{
+  margin-inline-end: 0px;
+}
+label.radioWrapper.checked{
+  background-color: #00695C;
+  color: #eee;
+}
+
+label.radioWrapper input[type="radio"]{
+  display: none;
+}
+
+
+.dialogForm {
+  width: 90vw;
+  max-width: 700px;
+  padding: 0 4px 4px 4px;
+  max-height: 80vh;
+  overflow-y: scroll;
+}
+
+.dialogForm.users {
+  max-width: 800px;
+}
+
+.dialogForm .cntRow, form .cntRow{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.cntRow .destItem{
+  margin-right: 16px;
+  display: flex;
+}
+.cntRow .destItem > span{
+  display: block;
+  padding-top: 14px;
+}
+
+.cntRow .destItem .MuiIconButton-root{
+  color:#ef9a9a;
+}
+
+.modalFormWrqapper .formTitle, 
+.schDialog .dialogTitle,
+.dialogForm .formTitle,
+.MuiDialog-container .formTitle,
+.MuiDialogTitle-root .formTitle
+{
+  color: #00695C;
+  font-size: 1.2rem;
+  margin: 4px 0 6px;
+  padding: 4px;
+  text-align: center;
+  border-bottom: #ddd 1px solid;
+  position: relative;
+}
+
+.modalFormWrqapper .formSubTitle, 
+.schDialog .formSubTitle,
+.dialogForm .formSubTitle,
+.MuiDialog-container .formSubTitle,
+.MuiDialogTitle-root .formSubTitle
+{
+  display: flex;
+  justify-content: center;
+  font-size: .8rem;
+  padding-top: 0;
+}
+.modalFormWrqapper .formSubTitle>div, 
+.schDialog .formSubTitle>div,
+.dialogForm .formSubTitle>div,
+.MuiDialog-container .formSubTitle>div,
+.MuiDialogTitle-root .formSubTitle>div
+{
+  padding: 0 6px 6px;
+}
+
+.modalFormWrqapper>div,.dialogForm>div{
+  padding: 4px 8px;
+}
+
+.dialogForm .formSubTitle .titlesmall{font-size: .8rem;}
+.dialogForm .formSubTitle .titlelarge{font-size: 1.2rem;}
+
+
+.dialogForm .errMsg{
+  padding: 8px 16px;
+  color: #d32f2f;
+  font-weight: bold;
+}
+
+.modalFormWrqapper .time span{
+  padding-inline-start: 6px;
+  padding-inline-end: 4px;
+}
+
+option.holiday{
+  color: #804536;
+}
+
+input[type="time"]{
+  border: none;
+  font-size: 1.1rem;
+  border-bottom: 1px #333 solid;
+}
+input[type="time"]:focus{
+  border: none;
+  font-size: 1.1rem;
+  border-bottom: 1px #00695C solid;
+  outline: none;
+}
+
+.radioWrapper input[type="radio"]{
+  display: none;
+}
+
+.radioWrapper i{
+  transition: .2s;
+  display: inline-block;
+  overflow: hidden;
+  opacity: 1;
+  width:1.1rem;
+}
+.radioWrapper i.current{
+  opacity: 0;
+}
+.radioWrapper i.notCurrent{
+  margin-inline-start: -1.1rem;
+}
+
+
+.radioWrapper .radioCurrent i.current{
+  /* width: 1.1rem; */
+  opacity: 1;
+}
+/* .radioWrapper .radioCurrent i.notCurrent{
+} */
+
+.modalFormWrqapper .dispatch{
+  margin: 5px;
+  padding: 5px;  
+}
+
+.modalFormWrqapper .formRow{
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.modalFormWrqapper .schEditSubtitle{
+  color: #00695C;
+  font-size: .8rem;
+  padding: 1px 0 1px 2rem;
+  background-color: #f5f5f5;
+}
+
+.modalFormWrqapper .category.radioWrapper{
+  padding: 20px 0 0 32px;
+}
+
+/* MATERIAL ui関連
+やっぱりまとめる予定 */
+.floatingActionButtons, .floatingRadioButtons{
+  position: fixed;
+  /* width: 30%; */
+  /* width: 600px; */
+  bottom: 20px;
+  right: 0px;
+  padding: 0 20px 0 0;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.floatingActionButtons button{
+  margin-inline-start: 20px;
+}
+
+.floatingActionButtons button:nth-of-type(1){
+  margin-inline-start: 0;
+}
+
+
+.floatingRadioButtons .MuiFormControlLabel-label{
+  font-size: .8rem;
+}
+
+.floatingActionButtons .MuiFab-root:hover{
+  background-color: none;
+}
+
+@media print{
+  .floatingActionButtons{display :none;}
+}
+
+.buttonWrapper{
+  text-align: right;
+  padding: 8px;
+}
+
+.buttonWrapper.fixed{
+  position: fixed;
+  bottom: 0;
+  right: 5%;
+}
+
+.setting .buttonWrapper.fixed{
+  width: 650px;
+  /* margin-left: calc((100vw - 650px) / 2); */
+  right:auto;
+}
+
+
+
+.buttonWrapper.floating{
+  padding: 0 0 0 4px;
+}
+
+.buttonWrapper.center{
+  text-align: center;
+}
+
+.buttonWrapper button{
+  margin-inline-start: 20px;
+}
+
+.buttonWrapper button:first-child{
+  margin-inline-start: 0;
+}
+
+.settingTabs header{
+  background-color: #37474f;
+}
+
+
+/* 未分類 */
+.loading{
+  margin-top: 40vh;
+  margin-left: 50%;
+  padding-left: -16px;
+  padding-top: -16px;
+  opacity: .6;
+}
+
+.loading img{
+  width: 32px;
+}
+
+.rooterLink>a{
+  display: inline-block;
+  padding: 7px 11px 6px;
+}
+
+.linksTab {
+  display: flex;
+  justify-content: center;
+  background-color: #37474f;
+  min-width: 1080px;
+}
+
+.linksTab.fixed{
+  position: fixed;
+  width: 100%;
+  z-index: 999;
+}
+
+.linksTab a {
+  color: #eceff1;
+  display: block;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  /* height: 28px; */
+  border-bottom: #0277BD00 2px;
+  margin: 0 8px;
+}
+
+.linksTab a.current {
+  background-color: #546e7a;
+  border-bottom: #0277BD 2px;
+}
+
+
+/* 請求処理 */
+.AppPage.account, .AppPage.proseed{
+  min-width: 400px;
+  padding-top: 3vh;
+  margin: 0 auto;
+}
+.AppPage.proseed{
+  padding-top: 12px;
+
+}
+.AppPage.account .billingPanel{
+  width: 90%;
+  max-width: 600px;
+  /* box-shadow: 0 1px 3px rgba(0,0,0,.2); */
+  border-radius: 2px;
+  padding: 24px;
+  text-align: center;
+  margin: 0 auto 0;
+  line-height: 1.4rem;
+}
+.AppPage.account .billingPanel.short{
+  margin: 1vh auto;
+  max-width: none;
+
+}
+
+.AppPage.account .billingPanel .massage{
+  padding: 4px 0;
+  margin-bottom: 8px;
+}
+
+.AppPage.account .billingPanel .sendProgress{
+  width:60%;
+  text-align: left;
+  padding: 4px 0;
+  margin: 0 auto;
+}
+
+/* .AppPage.account .billingPanel .sendProgress span{
+  display: inline-block;
+  padding : 6px 5px 5px;
+}*/
+
+.AppPage.account .billingPanel .sendProgress span.text{
+  margin-inline-start: 10px;
+}
+
+
+.AppPage .accountButtonGP{
+  min-width: 120px;
+}
+
+.AppPage .accountButtonGP:last-child{
+  margin-left: 4%;
+}
+
+.AppPage.proseed .calcButton{
+  text-align: center;
+  margin-bottom: 8px;
+}
+.AppPage.proseed .summary{
+  width: 95%;
+  max-width: 400px;
+  margin: 20px auto;
+}
+.AppPage.proseed .nodata{
+  text-align: center;
+  color: #546e7a;
+}
+.AppPage.proseed .nodata .icon{
+  font-size: 4.0rem;
+}
+.AppPage.proseed .nodata .text{
+  font-size: .8rem;
+}
+.AppPage.proseed .flxRow .rowh, 
+.AppPage.proseed .flxRow .rowd,
+.AppPage.proseed .flxTitle .rowh, 
+.AppPage.proseed .flxTitle .rowd 
+{
+  background-color: inherit;
+}
+
+.AppPage.proseed .flxRow:nth-child(odd),
+.proseedOthers .flxRow:nth-child(odd)
+{
+  background-color: #f5f5f5;
+}
+
+
+.AppPage.proseed .comment{
+  margin: 8px 0 0;
+  padding: 4px;
+  font-size: .8rem;
+}
+
+.AppPage.proseed .byUser{
+  width: 95%;
+  max-width: 950px;
+  margin: 24px auto;
+}
+
+.AppPage.proseed .serviceCode{
+  width: 95%;
+  max-width: 700px;
+  margin: 24px auto;
+}
+
+.flxRow.editOn{
+  cursor: pointer;
+}
+
+.flxRow.editOn:hover, .flxRow.editOn:hover>div:nth-child(odd){
+  background-color: #e0f2f1;
+}
+
+.userRow.flxRow .swapButtons{
+  display: none;
+}
+.userRow.flxRow.swapOn .swapButtons{
+  position: absolute;
+  top:-8px;
+  right:0px;
+  display: flex;
+  padding: 8px;
+  background-color: transparent;
+}
+
+.userRow.flxRow.swapOn .swapButtons .MuiIconButton-root{
+  padding:4px;
+}
+
+/* .AppPage.proseed .flxRow .rowd{
+  text-align: right;
+} */
+
+
+/* ログイン */
+.loginFrom{
+  width: 95%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.loginFrom>img{
+  width: 40%;
+  display: block;
+  margin: 4vh auto 0;
+}
+
+/* .AppPage.houdayNews{
+  margin-top: 72px;
+} */
+
+/* セッティング */
+.AppPage.setting{
+  min-width: 750px;
+  max-width: 750px;
+  margin: 90px auto;
+  
+}
+
+.AppPage.setting.narrow{
+  min-width: 420px;
+  max-width: 420px;
+}
+
+.setting .usersListForIndex{
+  padding-bottom: 56px;
+}
+.setting .userForIndex{
+  display: flex;
+  border: none;
+
+}
+
+.setting .userForIndex > div{
+  padding: 6px 6px 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.setting .userForIndex .title{
+  display: block;
+  font-size: .8rem;
+  padding-bottom: 8px;
+}
+
+.setting .buttonWrapper .sortButton{
+  background-color: #e65100;
+  color: #fff;
+}
+.setting .buttonWrapper .sortButton:hover{
+  background-color: #c84600;
+  color: #fff;
+}
+
+/* form .templateWrappOuter{
+  display: flex;
+  justify-content: space-around;
+} */
+form .templatewrappInnner{
+  padding: 8px;;
+}
+
+form .innerTitle{
+  font-size: .7rem;
+  border-bottom: #424242 2px solid;
+  padding: 8px 2px 2px 1rem;
+  /* background-color: #eeeeee; */
+  /* border-radius: 4px 4px 0 0 ; */
+  margin-bottom: 8px;
+}
+
+/* フォームパーツ */
+.aFormPartsWrapper{
+  display: flex;
+}
+
+.sFormaParts{
+  display: flex;
+  padding: 8px;
+}
+.aFormPartsWrapper.large{
+  width: 100%;
+}
+
+.aFormPartsWrapper.large, .aFormPartsWrapper.middle, .aFormPartsWrapper.middleL{
+  position: relative;
+  padding: 8px;
+  margin-bottom: 16px;
+  /* background-color: #ffffff; */
+  box-shadow: #b3b3b3 0px 1px 2px;
+  text-align: justify;
+}
+
+.aFormPartsWrapper.large .checked, .aFormPartsWrapper.middle .checked{
+  position: absolute;
+  top: -8px;
+  right:-8px;
+}
+
+.aFormPartsWrapper.middle .checked{
+  top:2px;
+  right:2px;
+
+}
+
+.aFormPartsWrapper.noOpt{
+  border: #00b6a166 1px solid;
+  border-radius: 4px;
+}
+
+.aFormPartsWrapper.middle, .aFormPartsWrapper.small, .aFormPartsWrapper.middleL{
+  padding: 4px;
+  margin-bottom: 8px;
+  box-shadow: none;
+}
+
+/* .divider{
+  display: none;
+}
+
+.AppPage.setting .divider{
+  display: block;
+  width: 60%;
+  margin: 0 auto;
+  height: 1px;
+  background-color: #546e7a;
+} */
+
+.setting form .acctualCosts{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.aFormPartsWrapper .discription{
+  display: none;
+}
+
+.aFormPartsWrapper.large .discription{
+  FLEX: 1;
+  display: block;
+  width: 60%;
+  padding: 8px;
+  padding-top: 0px;
+  font-size: .9rem;
+  line-height: 150%;
+}
+.aFormPartsWrapper.large .discription .title{
+  display: block;
+
+}
+.aFormPartsWrapper.large .discription .main{
+  display: block;
+}
+
+.aFormPartsWrapper .discription .more{
+  display: none;
+}
+
+.aFormPartsWrapper .priceLabel{
+  padding: 12px;
+}
+
+.MuiDialog-root .discription .main,
+.MuiDialog-root .discription .more{
+  display: block;
+  color: #111;
+  line-height: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+.MuiDialog-root .discription .more{
+  display: none;
+}
+
+.MuiButton-root, .MuiTypography-root, .MuiInput-root, 
+.MuiInputBase-root, .MuiFormLabel-root{
+  font-family: Meiryo, メイリオ, 'Hiragino Kaku Gothic Pro', 
+    'ヒラギノ角ゴ Pro W3', Osaka, 'MS PGothic', 
+    arial, helvetica, sans-serif;
+}
+
+/* 帳票出力用 */
+.AppPage.reports{
+  max-width: 600px;
+  padding-top: 40px;
+  margin: 60px auto;
+}
+.AppPage .printPreview{
+  margin-left: 60px;  
+}
+
+.AppPage.reports .reportCntRow{
+  max-width: 800px;
+  display: flex;
+  margin: 0 auto;
+  padding: 6px 0;
+}
+
+.reportCntRow .reportDisc{
+  flex: 0 0 45%;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+}
+.reportCntRow .reportDateSet{
+  flex: 0 0 28%;
+  padding: 8px;
+  padding-left: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.reportCntRow .genButton, .reportCntRow .dlButton{
+  width: 30%;
+  display: flex;
+  align-items: center;
+}
+
+.reportCntRow .buttonGp{
+  min-width: 120px;
+}
+
+.textEclips{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media print{
+  .headBar, .sideToolBar, .noprint, .linksTab{
+    display: none;
+  }
+  
+
+  
+
+  .AppPage.reports{
+    padding-top: 0;
+    margin: 0 auto;
+  }
+  .pageBreak{page-break-after:always;}
+  .pageBreak:last-child{page-break-after:auto;}
+  .printPage .pageBreak{page-break-after:always;}
+  .printPage:last-child .pageBreak{page-break-after:auto;}
+}
+
+/* アカウント */
+.AppPage.account{
+  margin: 16px auto;
+  max-width: 1080px;
+}
+
+.AppPage .H {
+  padding: 8px;
+  padding-top: 12px;
+  padding-left: 16px;
+  border-bottom: 1px solid #004d40;
+  background-color: #e0f2f1;
+}
+.AppPage .H .small{
+  font-size: .8rem;
+  padding: 4px 0;
+  line-height: 1.0rem;
+
+}
+
+.addedit{
+  cursor: url(./img/curaddedit.png);
+}
+.addremove{
+  cursor: url(./img/curaddremove.png);
+}
+
+@media screen and (max-width:1079px) {
+  .AppPage.fixed{
+    position: relative;
+    z-index: auto;
+  }
+  .AppPage.scroll, 
+  .AppPage.scroll.schedule,
+  .AppPage.scroll.userLst
+  {
+    padding-top: 90px;
+  }
+}
+
+@media screen {
+  .printOnly{
+    display: none;
+  }
+}
+.AppPage.Cntbkconfig{
+  min-width: 650px;
+  margin: 10px auto;
+}
+
+.AppPage.proseed{
+  padding-top: 92px;
+}
+@media print{
+  .AppPage.proseed{
+    padding-top: 0;
+  }
+}
+
+@media print {
+  .noprint {
+    display: none !important;
+  }
+}
+

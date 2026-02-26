@@ -1,0 +1,72 @@
+/* リセット用のCSS */
+html {
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, ol, ul {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+  font-size: 16px;
+}
+
+ol, ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* カラーパレット */
+:root {
+  --main-color: #333333;
+  --accent-color: #f1c40f;
+  --background-color: #ffffff;
+  --text-color: #333333;
+  --link-color: #3498db;
+  --primary: #01695d;
+  --primary-lean: #00b9a4;
+}
+
+/* 共通のスタイル */
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* その他のスタイル */
+/* 例: header, main, footer など */
+header{
+  background-color: var(--primary);
+  color: var(--background-color);
+  text-align: center;
+  padding: 8px;
+}
+header .title{font-size: 24px; }
+header .eng{font-size: 12px; }
+.container {
+  width: 100%; max-width: 640px; 
+  margin: 0 auto;
+  padding: 8px;
+}
+h1{border-bottom: 1px solid var(--primary-lean);}
+h1 .name{font-size: 24px;}
+h1 .date, h1.other{font-size: 12px;}
+
