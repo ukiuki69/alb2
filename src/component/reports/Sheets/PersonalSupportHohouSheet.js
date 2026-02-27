@@ -245,7 +245,7 @@ export const PersonalSupportHohouSheet = (props) => {
                   <img src={adjustedContent.signUrl} alt="電子サイン" className={classes.signImage} />
                 )}
               </td>
-              <td style={{width: '128px'}}></td>
+              <td style={{width: '64px'}}></td>
               <td className='signCol'>
                 児童発達支援管理責任者{showStaffName && adjustedContent["児発管"] ? `　　${adjustedContent["児発管"]}` : ""}
                 {showStaffName && adjustedContent["補助作成者"] && (

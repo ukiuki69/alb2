@@ -229,7 +229,7 @@ export const MonitoringSheet = (props) => {
         <tr><td style={{paddingBottom: '16px'}}>説明同意交付日付<span style={{paddingLeft: '64px'}}>令和　　年　　月　　日</span></td></tr>
         <tr>
           <td className='signCol'>保護者氏名</td>
-          <td style={{width: '128px'}}/>
+          <td style={{width: '64px'}}/>
           <td className='signCol'>
             児童発達支援管理責任者{showStaffName && adjustedContent["作成者"] ? `　　${adjustedContent["作成者"]}` : ""}
           </td>

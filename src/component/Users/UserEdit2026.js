@@ -1665,7 +1665,7 @@ const UserEdit2026 = () => {
                   onClick={handleUpperLimitButtonClick}
                   startIcon={<EditIcon />}
                   variant='outlined'
-                  style={{ color: upperLimitTextColor }}
+                  style={{ color: upperLimitTextColor, minWidth: 210 }}
                 >
                   {upperLimitButtonLabel}
                 </Button>
@@ -1712,7 +1712,7 @@ const UserEdit2026 = () => {
                 onClick={openAddictionDialog}
                 startIcon={<EditIcon />}
                 variant='outlined'
-                style={{ color: orange[800] }}
+                style={{ color: orange[800], minWidth: 210 }}
               >
                 利用者別加算・請求設定
               </Button>

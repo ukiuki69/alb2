@@ -83,6 +83,11 @@ const KyouryokuFrormParts = ({
 }) => {
   const formDef = getFormDefFnc(0, schedule, UID, objKey, users);
   const def = formDef[3] ? formDef[3]: kanrigoFutan;
+  const com = useSelector(state=>state.com);
+  const user = comMod.getUser(UID, users);
+  const cities = com?.etc?.cities ?? [];
+  const isDokujiJougen = cities.find(e=>e.no === user.scity_no).dokujiJougen;
+  const [dokujiHojo, setDokujiHojo] = useState(schedule?.[UID]?.管理事業所?.[0]?.dokujiHojo ?? 0);
   useEffect(()=>{
     console.log('KyouryokuFrormParts', kanrikekka)
   }, [kanrikekka])
@@ -114,6 +119,17 @@ const KyouryokuFrormParts = ({
           def={def} upper={1000000}
           cls="tfMiddleL"
         />
+        {isDokujiJougen && 
+          <sfp.NumInputGP
+            name="dokujiHojo"
+            label="自治体助成額"
+            propsVal={dokujiHojo}
+            setPropsVal={setDokujiHojo}
+            def={dokujiHojo} upper={1000000}
+            cls="tfMiddleL"
+          />
+      
+        }
       </div>
     </>
   );
@@ -377,7 +393,7 @@ export const UpperLimitKanri = (props)=>{
     const namesTags = [
       [
         'office1', 'no1', 'amount1', 'kettei', 
-        '上限管理配分種別', 'kanriKekka',
+        '上限管理配分種別', 'kanriKekka', 'dokujiHojo',
       ], 
       ['office2', 'no2', 'amount2'], 
       ['office3', 'no3', 'amount3'], 
@@ -398,6 +414,7 @@ export const UpperLimitKanri = (props)=>{
           kettei: fvals[e[3]], // 協力事業所のときのみ有効
           haibun: fvals[e[4]], // 協力事業所のときのみ有効
           kanriKekka: fvals[e[5]], // 協力事業所のときのみ有効
+          dokujiHojo: fvals[e[6]], // 協力事業所の先頭要素に保持
         }
       }
     }).filter(e=>e !== undefined);
@@ -441,8 +458,6 @@ export const UpperLimitKanri = (props)=>{
       })
       return false;
     }
-    // 独自助成金の処理. 管理事業所配列の0番目に配置される 2023年9月26日
-    if ('dokujiHojo' in fvals) outPuts[0].dokujiHojo = fvals.dokujiHojo;
     if (deleteJougen){
       console.log('deleteJougen', outPuts, fvals, 'outPuts, fvals');
     }

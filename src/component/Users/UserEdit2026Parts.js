@@ -342,7 +342,7 @@ export const HnoTextField = ({
         value={localVal}
         required
         disabled={isDisabled}
-        onChange={e => { if (!isDisabled) { setLocalVal(e.target.value); onChange('hno', e.target.value); } }}
+        onChange={e => { if (!isDisabled) { setLocalVal(e.target.value); } }}
         onBlur={handleBlur}
         error={isDisabled ? false : (error?.error || false)}
         helperText={isDisabled ? '仮設定中' : (error?.helperText || '仮登録は未入力')}
