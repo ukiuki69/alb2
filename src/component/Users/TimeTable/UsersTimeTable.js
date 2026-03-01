@@ -12,6 +12,8 @@ import { getFilteredUsers, recentUserStyle } from '../../../albCommonModule';
 import { getJikanKubunAndEnchou } from "../../../modules/elapsedTimes";
 import { checkValueType } from "../../dailyReport/DailyReportCommon";
 import { planMenu } from "../../plan/planCommonPart";
+import { permissionCheckTemporary } from '../../../modules/permissionCheck';
+import { PERMISSION_DEVELOPER } from '../../../modules/contants';
 
 const INDEX_WIDTH = "32px";
 const AGESTR_WIDTH = "56px";
@@ -231,6 +233,8 @@ const TimeTableContents = (props) => {
 
 const UserRow = (props) => {
   const com = useSelector(state => state.com);
+  const account = useSelector(state => state.account);
+  const isDev = permissionCheckTemporary(PERMISSION_DEVELOPER, account);
   const history = useHistory();
   const location = useLocation();
   const stdDate = useSelector(state => state.stdDate);
@@ -370,7 +374,15 @@ const UserRow = (props) => {
         {planDt && <TimeTableContents timeDt={planDt?.content?.holiday} height={prevHeight} />}
         {pastPlanDt && <TimeTableContents timeDt={pastPlanDt?.content?.holiday} height={pastHeight} color={PAST_COLOR} disabled />}
         {futurePlanDt && <TimeTableContents timeDt={futurePlanDt?.content?.holiday} height={futureHeight} color={FUTURE_COLOR} disabled />}
-      </div> 
+      </div>
+      {isDev && planDt?.content?.signUrl && (
+        <div style={{ display: 'flex', alignItems: 'center', padding: '8px 4px 4px' }}>
+          <img
+            src={planDt.content.signUrl} alt="電子サイン"
+            style={{ height: 24, border: '1px solid #eee', borderRadius: 2 }}
+          />
+        </div>
+      )}
     </div>
   )
 }

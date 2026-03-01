@@ -28,7 +28,7 @@ import { getLS, setLS } from '../../modules/localStrageOprations';
 import { planlsUid, PLAN_ADD_MODE_KEY, PLAN_ADD_MODE_ITEM } from './planConstants';
 import { PlanRelatedItemsPanel } from './PlanRelatedItemsPanel';
 import { saveCreatedDateToLS } from './utility/planLSUtils';
-import { generateConferenceNoteFromAssessmentAndDraft, generatePlanReviewProposal, generateConferenceNoteFromMonitoringAndAssessment } from './planMakePrompt';
+import { generateConferenceNoteFromAssessmentAndDraft, generateConferenceNoteFromMonitoringAndAssessment } from './planMakePrompt';
 import { fetchAssessmentChanges } from './planCommonPart';
 import { isPlanAddMode, resetPlanAddMode } from './planCommonPart';
 import { llmApiCall } from '../../modules/llmApiCall';
@@ -252,6 +252,33 @@ const PlanConferenceNoteDetail = (props) => {
     assessmentChanges: {},
     isImprovementMode: false // デフォルトは見守り（false）
   });
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState(null);
+
+  const hasUnsavedChanges = !deepEqual(originInputs, inputs);
+  const hasUnsavedChangesRef = useRef(false);
+  const unblockRef = useRef(null);
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+  useEffect(() => {
+    if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; }
+    unblockRef.current = history.block((nextLocation) => {
+      if (!hasUnsavedChangesRef.current) return true;
+      setPendingLocation(nextLocation);
+      setLeaveConfirmOpen(true);
+      return false;
+    });
+    return () => { if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; } };
+  }, [history]);
+  const closeLeaveConfirm = () => { setLeaveConfirmOpen(false); setPendingLocation(null); };
+  const confirmLeave = () => {
+    const next = pendingLocation;
+    setLeaveConfirmOpen(false);
+    setPendingLocation(null);
+    if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; }
+    if (next) history.push(`${next.pathname || ''}${next.search || ''}${next.hash || ''}`);
+  };
 
   // 日付変更／コピーは共通コンポーネントへ移行
 
@@ -1096,6 +1123,17 @@ const PlanConferenceNoteDetail = (props) => {
         <DialogActions>
           <Button onClick={() => setPlanReviewDialogOpen(false)} color="default">キャンセル</Button>
           <Button onClick={handleConfirmPlanReview} color="primary" variant="contained">実行</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={leaveConfirmOpen} onClose={closeLeaveConfirm} maxWidth='xs'>
+        <DialogTitle>未保存の変更</DialogTitle>
+        <DialogContent>
+          変更が保存されていません。ページを離れますか？
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeLeaveConfirm}>キャンセル</Button>
+          <Button onClick={confirmLeave} style={{ color: red[700] }}>破棄して移動</Button>
         </DialogActions>
       </Dialog>
     </div>

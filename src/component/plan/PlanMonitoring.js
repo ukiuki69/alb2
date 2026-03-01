@@ -30,6 +30,8 @@ import { planlsUid, PLAN_ADD_MODE_KEY, PLAN_ADD_MODE_ITEM } from './planConstant
 import { PlanRelatedItemsPanel } from './PlanRelatedItemsPanel';
 import { saveCreatedDateToLS } from './utility/planLSUtils';
 import { isPlanAddMode, resetPlanAddMode } from './planCommonPart';
+import { permissionCheckTemporary } from '../../modules/permissionCheck';
+import { PERMISSION_DEVELOPER } from '../../modules/contants';
 
 
 const useStyles = makeStyles({
@@ -372,7 +374,7 @@ const PlanMonitoringDetail = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const allState = useSelector(s => s);
-  const { hid, bid, users } = allState;
+  const { hid, bid, users, account } = allState;
   const { 
     uid, suid, allPersonalData, setAllPersonalData, snack, setSnack, 
     allPersonalSupportData, setAllPersonalSupportData, withSideSection
@@ -392,6 +394,7 @@ const PlanMonitoringDetail = (props) => {
   
   // 自由実費項目 open/close 用
   const user = getUser(effectiveUid, users);
+  const isDev = permissionCheckTemporary(PERMISSION_DEVELOPER, account);
   const uids = convUID(uid).str;
   const required = true;
   const initialValues = getInitialValues();
@@ -401,6 +404,9 @@ const PlanMonitoringDetail = (props) => {
   const [dateDisabled, setDateDisabled] = useState(false);
   const planAiButtonDisplay = getUisCookie(uisCookiePos.planAiButtonDisplay) !== '0';
   const createdBase = originInputs?.['実施日'] || inputs?.['実施日'];
+  const canRequestSign = user?.ext?.line?.auth?.checked === true && !!user?.ext?.line?.id;
+  const signRequireEnabled = allState.com?.ext?.usersPlanSettings?.signRequire ?? false;
+  const showSignSection = (signRequireEnabled && canRequestSign) || !!originInputs?.signUrl;
   const [errors, setErrors] = useState({});
   // 生成確認用ダイアログと特記事項
   const [genDialogOpen, setGenDialogOpen] = useState(false);
@@ -411,6 +417,33 @@ const PlanMonitoringDetail = (props) => {
   // 生成メニュー用の状態
   const [genMenuAnchor, setGenMenuAnchor] = useState(null);
   const [genMenuOpen, setGenMenuOpen] = useState(false);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState(null);
+
+  const hasUnsavedChanges = !deepEqual(originInputs, inputs);
+  const hasUnsavedChangesRef = useRef(false);
+  const unblockRef = useRef(null);
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+  useEffect(() => {
+    if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; }
+    unblockRef.current = history.block((nextLocation) => {
+      if (!hasUnsavedChangesRef.current) return true;
+      setPendingLocation(nextLocation);
+      setLeaveConfirmOpen(true);
+      return false;
+    });
+    return () => { if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; } };
+  }, [history]);
+  const closeLeaveConfirm = () => { setLeaveConfirmOpen(false); setPendingLocation(null); };
+  const confirmLeave = () => {
+    const next = pendingLocation;
+    setLeaveConfirmOpen(false);
+    setPendingLocation(null);
+    if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; }
+    if (next) history.push(`${next.pathname || ''}${next.search || ''}${next.hash || ''}`);
+  };
 
   // 生成メニューのハンドラー
   const handleGenMenuOpen = (event) => {
@@ -1168,6 +1201,31 @@ const PlanMonitoringDetail = (props) => {
         {psDisp('家族意向')}
         <div className="fpRow">{FieldRender('関係者の希望')}</div>
         <div className="fpRow">{FieldRender('備考')}</div>
+        {isDev && showSignSection && (
+          <div className="fpRow">
+            {signRequireEnabled && canRequestSign && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={inputs?.['電子サイン依頼'] === true}
+                    onChange={(e) => setInputs(prev => ({ ...prev, '電子サイン依頼': e.target.checked }))}
+                    color="primary"
+                    disabled={!!originInputs?.signUrl}
+                  />
+                }
+                label="電子サイン依頼"
+              />
+            )}
+            {originInputs?.signUrl && (
+              <div style={{ display: 'flex', alignItems: 'center', marginLeft: 8 }}>
+                <img
+                  src={originInputs.signUrl} alt="電子サイン"
+                  style={{ height: 32, border: '1px solid #eee', borderRadius: 4 }}
+                />
+              </div>
+            )}
+          </div>
+        )}
         {/* グループ「支援目標」のレンダリング */}
         <div className="groupSection">
           <h3 className={classes.groupTitle}>達成目標と経過</h3>
@@ -1296,6 +1354,17 @@ const PlanMonitoringDetail = (props) => {
           <Button onClick={confirmDelete} color="primary" autoFocus>
             削除する
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={leaveConfirmOpen} onClose={closeLeaveConfirm} maxWidth='xs'>
+        <DialogTitle>未保存の変更</DialogTitle>
+        <DialogContent>
+          変更が保存されていません。ページを離れますか？
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeLeaveConfirm}>キャンセル</Button>
+          <Button onClick={confirmLeave} style={{ color: red[700] }}>破棄して移動</Button>
         </DialogActions>
       </Dialog>
       <SnackMsg {...snack} />

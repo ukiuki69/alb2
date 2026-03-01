@@ -3,6 +3,8 @@ import { getUser } from '../../commonModule';
 import { llmApiCall } from '../../modules/llmApiCall';
 import { inputDefinitions } from './PlanAssessment';
 import { getFiveDomainForLabel, deepEqual, getAssessmentChanges, formatAssessmentChanges } from './planCommonPart';
+import { extractLlmContent, safeParseLlmJson, applyConferenceNoteResult } from './planLlmUtils';
+import { normalizeDomainLabel, buildSupportGoalsText, buildPlanSummary } from './planPromptBuilders';
 
 // promptCrypt の個別指定は廃止（llmApiCall内の定数で制御）
 
@@ -135,14 +137,6 @@ export const generateComprehensivePlan = async (prms) => {
     : 'なし';
 
   // ===== isModify 用 追加ユーティリティ =====
-  const normalizeDomainLabel = (label) => {
-    if (!label) return '';
-    const replaced = String(label)
-      .replace('言語・コミュニケーション', '言語・コミュ')
-      .replace('言語コミュニケーション', '言語・コミュ');
-    return replaced;
-  };
-
   const clipText = (text, maxLen) => {
     if (!text && text !== 0) return '';
     const s = String(text).replace(/[\s\u00A0]+/g, ' ').trim();
@@ -367,26 +361,8 @@ ${communitySupportText ? `\n${communitySupportText}` : ''}
       'EGEN23592', '', setSnack
     );
 
-    let contentStr = '';
-    if (res?.data?.response) {
-      contentStr = res.data.response;
-    } else if (res?.data?.content) {
-      contentStr = res.data.content;
-    }
+    const contentStr = extractLlmContent(res);
 
-    // 応答JSONの安全パース（軽微な引用符の不整合を補正）
-    const safeParsePlanJson = (text) => {
-      if (!text || typeof text !== 'string') return null;
-      try { return JSON.parse(text); } catch (_) {}
-      let fixed = text;
-      // スマートクォートをASCIIに
-      fixed = fixed.replace(/[\u2018\u2019]/g, "'");
-      // 値末尾が単引用符で閉じられているケース 例: "...": "本文…',\n → ダブルクォートに置換
-      fixed = fixed.replace(/(\":\s*\")(.*?)'(?=\s*[\},])/g, '$1$2"');
-      // まれにキー/値の内部で改行が混ざる場合の最低限の正規化
-      fixed = fixed.replace(/\r\n|\r/g, '\n');
-      try { return JSON.parse(fixed); } catch (_) { return null; }
-    };
     // 言語・コミュニケーションの表記ゆれを修正
     const normalizeLanguageCommunication = (text) => {
       if (!text || typeof text !== 'string') return text;
@@ -394,7 +370,7 @@ ${communitySupportText ? `\n${communitySupportText}` : ''}
     };
 
     if (contentStr) {
-      const content = safeParsePlanJson(normalizeLanguageCommunication(contentStr));
+      const content = safeParseLlmJson(normalizeLanguageCommunication(contentStr));
       if (!content) {
         setSnack({ msg: 'LLM応答のJSON解析に失敗しました', severity: 'error' });
         return;
@@ -453,12 +429,6 @@ export const generateConferenceNoteFromAssessmentAndDraft = async (prms) => {
 
     // ユーティリティ
     const isNonEmpty = (v) => v !== undefined && v !== null && String(v).toString().trim() !== '';
-    const normalizeDomainLabel = (label) => {
-      if (!label) return '';
-      return String(label)
-        .replace('言語・コミュニケーション', '言語・コミュ')
-        .replace('言語コミュニケーション', '言語・コミュ');
-    };
     const toArray = (v) => Array.isArray(v) ? v : (typeof v === 'string' && v.trim().startsWith('[')
       ? (()=>{ try { return JSON.parse(v); } catch(_) { return []; } })()
       : []);
@@ -597,9 +567,7 @@ ${formatGoals(personalSupport) ? `【個別支援計画（原案） 支援目標
       setSnack
     );
 
-    let contentStr = '';
-    if (res?.data?.response) contentStr = res.data.response;
-    else if (res?.data?.content) contentStr = res.data.content;
+    const contentStr = extractLlmContent(res);
 
     if (!contentStr) {
       if (typeof setSnack === 'function') {
@@ -608,16 +576,7 @@ ${formatGoals(personalSupport) ? `【個別支援計画（原案） 支援目標
       return null;
     }
 
-    // 安全パース
-    const safeParse = (text) => {
-      try { return JSON.parse(text); } catch (_) {}
-      let fixed = String(text);
-      fixed = fixed.replace(/```json[\s\S]*?```/g, (m) => m.replace(/```json|```/g, ''));
-      fixed = fixed.replace(/\r\n|\r/g, '\n');
-      try { return JSON.parse(fixed); } catch (_) { return null; }
-    };
-
-    const obj = safeParse(contentStr);
+    const obj = safeParseLlmJson(contentStr);
     if (!obj || typeof obj !== 'object') {
       if (typeof setSnack === 'function') {
         setSnack({ msg: 'LLM応答の解析に失敗しました', severity: 'error' });
@@ -730,22 +689,9 @@ ${assessmentContext ? `【重要：アセスメント変更点の考慮につい
       setSnack
     );
 
-    let contentStr = '';
-    if (res?.data?.response) contentStr = res.data.response;
-    else if (res?.data?.content) contentStr = res.data.content;
+    const contentStr = extractLlmContent(res);
 
-    // 安全パース
-    const safeParse = (text) => {
-      if (!text || typeof text !== 'string') return null;
-      try { return JSON.parse(text); } catch (_) {}
-      let fixed = String(text);
-      fixed = fixed.replace(/```json[\s\S]*?```/g, (m) => m.replace(/```json|```/g, ''));
-      fixed = fixed.replace(/```[\s\S]*?```/g, (m) => m.replace(/```/g, ''));
-      fixed = fixed.replace(/\r\n|\r/g, '\n');
-      try { return JSON.parse(fixed); } catch (_) { return null; }
-    };
-
-    const obj = safeParse(contentStr);
+    const obj = safeParseLlmJson(contentStr);
     if (!obj || typeof obj !== 'object') {
       setSnack && setSnack({ msg: 'LLM応答の解析に失敗しました', severity: 'error' });
       return;
@@ -808,25 +754,7 @@ export const generatePlanReviewProposal = async (prms) => {
       return `【目標${idx + 1}】${goal}\n達成度: ${achievement}\n評価: ${evaluation}\n考察: ${consideration}`;
     }).join('\n\n');
 
-    // 個別支援計画の支援内容を整理
-    const supportGoals = Array.isArray(personalSupport?.['支援目標']) ? personalSupport['支援目標'] : [];
-    const supportGoalsText = supportGoals.map((goal, idx) => {
-      const goalText = goal?.['支援目標'] || '';
-      const contentText = goal?.['支援内容'] || '';
-      return `【支援目標${idx + 1}】${goalText}\n支援内容: ${contentText}`;
-    }).join('\n\n');
-
-    // 個別支援計画の主要項目を整理
-    const planSummary = `
-【個別支援計画の概要】
-長期目標: ${personalSupport?.['長期目標'] || ''}
-短期目標: ${personalSupport?.['短期目標'] || ''}
-本人の希望: ${personalSupport?.['本人意向'] || ''}
-家族の希望: ${personalSupport?.['家族意向'] || ''}
-
-【支援目標と支援内容】
-${supportGoalsText || '支援目標が設定されていません'}
-`;
+    const planSummary = buildPlanSummary(personalSupport);
 
     // プロンプトを構築
     const prompt = `
@@ -867,9 +795,7 @@ ${progressText}
       setSnack
     );
 
-    let contentStr = '';
-    if (res?.data?.response) contentStr = res.data.response;
-    else if (res?.data?.content) contentStr = res.data.content;
+    const contentStr = extractLlmContent(res);
 
     if (!contentStr) {
       if (typeof setSnack === 'function') {
@@ -878,16 +804,7 @@ ${progressText}
       return null;
     }
 
-    // 安全パース
-    const safeParse = (text) => {
-      try { return JSON.parse(text); } catch (_) {}
-      let fixed = String(text);
-      fixed = fixed.replace(/```json[\s\S]*?```/g, (m) => m.replace(/```json|```/g, ''));
-      fixed = fixed.replace(/\r\n|\r/g, '\n');
-      try { return JSON.parse(fixed); } catch (_) { return null; }
-    };
-
-    const obj = safeParse(contentStr);
+    const obj = safeParseLlmJson(contentStr);
     if (!obj || typeof obj !== 'object') {
       if (typeof setSnack === 'function') {
         setSnack({ msg: 'LLM応答の解析に失敗しました', severity: 'error' });
@@ -896,12 +813,7 @@ ${progressText}
     }
 
     // 結果を各フィールドに反映
-    setInputs(prev => ({
-      ...prev,
-      '議事録': obj['議事録'] || '',
-      '修正': obj['修正'] || '',
-      '課題': obj['課題'] || ''
-    }));
+    applyConferenceNoteResult(obj, setInputs);
     
     setSnack({ msg: '計画見直し提案を生成しました', severity: 'success' });
     
@@ -937,25 +849,7 @@ export const generateConferenceNoteFromMonitoringAndAssessment = async (prms) =>
       return `【目標${idx + 1}】${goal}\n達成度: ${achievement}\n評価: ${evaluation}\n考察: ${consideration}`;
     }).join('\n\n') : '';
 
-    // 個別支援計画の支援内容を整理
-    const supportGoals = Array.isArray(personalSupport?.['支援目標']) ? personalSupport['支援目標'] : [];
-    const supportGoalsText = supportGoals.map((goal, idx) => {
-      const goalText = goal?.['支援目標'] || '';
-      const contentText = goal?.['支援内容'] || '';
-      return `【支援目標${idx + 1}】${goalText}\n支援内容: ${contentText}`;
-    }).join('\n\n');
-
-    // 個別支援計画の主要項目を整理
-    const planSummary = `
-【個別支援計画の概要】
-長期目標: ${personalSupport?.['長期目標'] || ''}
-短期目標: ${personalSupport?.['短期目標'] || ''}
-本人の希望: ${personalSupport?.['本人意向'] || ''}
-家族の希望: ${personalSupport?.['家族意向'] || ''}
-
-【支援目標と支援内容】
-${supportGoalsText || '支援目標が設定されていません'}
-`;
+    const planSummary = buildPlanSummary(personalSupport);
 
     // モードに応じた作成方針を設定
     const modeDescription = isImprovementMode 
@@ -1014,9 +908,7 @@ ${modeInstructions}
       setSnack
     );
 
-    let contentStr = '';
-    if (res?.data?.response) contentStr = res.data.response;
-    else if (res?.data?.content) contentStr = res.data.content;
+    const contentStr = extractLlmContent(res);
 
     if (!contentStr) {
       if (typeof setSnack === 'function') {
@@ -1025,16 +917,7 @@ ${modeInstructions}
       return null;
     }
 
-    // 安全パース
-    const safeParse = (text) => {
-      try { return JSON.parse(text); } catch (_) {}
-      let fixed = String(text);
-      fixed = fixed.replace(/```json[\s\S]*?```/g, (m) => m.replace(/```json|```/g, ''));
-      fixed = fixed.replace(/\r\n|\r/g, '\n');
-      try { return JSON.parse(fixed); } catch (_) { return null; }
-    };
-
-    const obj = safeParse(contentStr);
+    const obj = safeParseLlmJson(contentStr);
     if (!obj || typeof obj !== 'object') {
       if (typeof setSnack === 'function') {
         setSnack({ msg: 'LLM応答の解析に失敗しました', severity: 'error' });
@@ -1043,12 +926,7 @@ ${modeInstructions}
     }
 
     // 結果を各フィールドに反映
-    setInputs(prev => ({
-      ...prev,
-      '議事録': obj['議事録'] || '',
-      '修正': obj['修正'] || '',
-      '課題': obj['課題'] || ''
-    }));
+    applyConferenceNoteResult(obj, setInputs);
     
     const modeText = isImprovementMode ? '改善議事録' : '見守り議事録';
     setSnack({ msg: `${modeText}を生成しました`, severity: 'success' });

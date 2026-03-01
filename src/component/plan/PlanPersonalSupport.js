@@ -564,6 +564,33 @@ const PlanPersonalSupportDetail = (props) => {
   ), []);
   // 未選択の五領域一覧
   const [missingFiveDomains, setMissingFiveDomains] = useState([]);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+  const [pendingLocation, setPendingLocation] = useState(null);
+
+  const hasUnsavedChanges = !deepEqual(originInputs, inputs);
+  const hasUnsavedChangesRef = useRef(false);
+  const unblockRef = useRef(null);
+  useEffect(() => {
+    hasUnsavedChangesRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+  useEffect(() => {
+    if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; }
+    unblockRef.current = history.block((nextLocation) => {
+      if (!hasUnsavedChangesRef.current) return true;
+      setPendingLocation(nextLocation);
+      setLeaveConfirmOpen(true);
+      return false;
+    });
+    return () => { if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; } };
+  }, [history]);
+  const closeLeaveConfirm = () => { setLeaveConfirmOpen(false); setPendingLocation(null); };
+  const confirmLeave = () => {
+    const next = pendingLocation;
+    setLeaveConfirmOpen(false);
+    setPendingLocation(null);
+    if (unblockRef.current) { unblockRef.current(); unblockRef.current = null; }
+    if (next) history.push(`${next.pathname || ''}${next.search || ''}${next.hash || ''}`);
+  };
 
   // 右側固定の関連アイテムパネル用の作成日ベース
   const createdBase = originInputs?.['作成日'] || inputs?.['作成日'];
@@ -1672,11 +1699,6 @@ const PlanPersonalSupportDetail = (props) => {
                     }
                     label={findInputByLabel('電子サイン依頼', inputDefinitions)?.label || '電子サイン依頼'}
                   />
-                  {!originInputs?.signUrl && (
-                    <div style={{ color: red[500], fontSize: '0.75rem', marginTop: -8, marginLeft: 32, marginBottom: 8 }}>
-                      2025/12/30現在、この設定は有効でない場合があります
-                    </div>
-                  )}
                 </div>
               )}
               {originInputs?.signUrl && (
@@ -1870,6 +1892,17 @@ const PlanPersonalSupportDetail = (props) => {
           >
             実行
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={leaveConfirmOpen} onClose={closeLeaveConfirm} maxWidth='xs'>
+        <DialogTitle>未保存の変更</DialogTitle>
+        <DialogContent>
+          変更が保存されていません。ページを離れますか？
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeLeaveConfirm}>キャンセル</Button>
+          <Button onClick={confirmLeave} style={{ color: red[700] }}>破棄して移動</Button>
         </DialogActions>
       </Dialog>
     </div>

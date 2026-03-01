@@ -1273,11 +1273,6 @@ const PlanSenmonShienDetail = (props) => {
                     }
                     label={findInputByLabel('電子サイン依頼')?.label || '電子サイン依頼'}
                   />
-                  {!originInputs?.signUrl && (
-                    <div style={{ color: red[500], fontSize: '0.75rem', marginTop: -8, marginLeft: 32, marginBottom: 8 }}>
-                      2025/12/30現在、この設定は有効でない場合があります
-                    </div>
-                  )}
                 </div>
               )}
               {originInputs?.signUrl && (
