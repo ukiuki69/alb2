@@ -6,6 +6,21 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3433 2026/03/01
+### 変更ファイル
+- component/Users/utils/userEditSubmit.test.js
+- component/Users/utils/__fixtures__/createParams.js
+- component/Users/utils/__fixtures__/userFixtureHelpers.js
+- .gitignore
+
+### 主な変更内容
+1. userEditSubmit のユニットテスト追加（submitUserEdit / kanriChk の正常系・エラー系・散らしテスト）
+2. テスト用フィクスチャヘルパー（createParams / userFixtureHelpers）を新規作成
+3. .gitignore に src/testData/ を追加（実データをバージョン管理から除外）
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3432 2026/02/27
 ### 変更ファイル
 - component/reports/Sheets/PersonalSupportSheet.js
