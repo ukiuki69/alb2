@@ -10,8 +10,7 @@ import { AlbHMuiTextField, AlbHTimeInput } from "../../common/HashimotoComponent
 import { HOUDAY, JIHATSU } from '../../../modules/contants';
 import { setRecentUser, univApiCall } from '../../../albCommonModule';
 import { setSnackMsg, setStore } from "../../../Actions";
-import { LinksTab, LoadingSpinner } from "../../common/commonParts";
-import { usersMenu } from "../Users";
+import { LoadingSpinner } from "../../common/commonParts";
 import { getDayStr } from "./UsersTimeTableEditOld";
 import { getJikanKubunAndEnchou } from "../../../modules/elapsedTimes";
 import SnackMsg from "../../common/SnackMsg";
@@ -285,6 +284,7 @@ const CancelButton = () => {
 
 const BatchEditButton = (props) => {
   const history = useHistory();
+  const location = useLocation();
   const {uid} = useParams();
   const {checkedDt, planDt} = props;
   const [snack, setSnack] = useState({});
@@ -297,7 +297,8 @@ const BatchEditButton = (props) => {
       return;
     }
     const checkedDays = Object.keys(checkedDt).filter(day => checkedDt[day]);
-    history.push(`/users/timetable/edit/batch/${uid}/?dateStr=${created}&days=${checkedDays.join(",")}`);
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+    history.push(`${prefix}/timetable/edit/batch/${uid}/?dateStr=${created}&days=${checkedDays.join(",")}`);
   }
 
   return(
@@ -321,10 +322,6 @@ const BatchEditButton = (props) => {
 }
 
 const SendButton = (props) => {
-  const history = useHistory();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const historyParam = searchParams.get("history");
   const dispatch = useDispatch();
   const hid = useSelector(state => state.hid);
   const bid = useSelector(state => state.bid);
@@ -371,7 +368,6 @@ const SendButton = (props) => {
       setRecentUser("UID"+uid);
       dispatch(setStore({users: newUsers}));
       dispatch(setSnackMsg('更新しました。', '', ''));
-      history.push(historyParam === "plan" ?`/plan/manegement` :SELECTPAGE_PATH);
     }catch(e){
       console.error(e);
     }
@@ -547,7 +543,6 @@ const UsersTimeTableEdit = () => {
   
   if(!loadingStatus.loaded) return(
     <>
-    <LinksTab menu={usersMenu} />
     <LoadingSpinner />
     </>
   );
@@ -559,10 +554,9 @@ const UsersTimeTableEdit = () => {
     history.push(historyParam === "plan" ?`/plan/manegement` :SELECTPAGE_PATH);
     return null;
   }
-  
+
   return(
     <>
-    <LinksTab menu={usersMenu} />
     <div className={classes.AppPage}>
       <UsersTimeTableGoBackButton />
       <div className="infos">

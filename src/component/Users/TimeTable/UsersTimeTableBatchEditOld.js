@@ -9,8 +9,7 @@ import { getMinutesFromTimeStr } from "./UsersTimeTableCommon";
 import { AlbHMuiTextField } from "../../common/HashimotoComponents";
 import { getFilteredUsers, setRecentUser, univApiCall } from '../../../albCommonModule';
 import { setSnackMsg, setStore } from "../../../Actions";
-import { GoBackButton, LinksTab } from "../../common/commonParts";
-import { usersMenu } from "../Users";
+import { GoBackButton } from "../../common/commonParts";
 import SnackMsg from "../../common/SnackMsg";
 import { getDayStr, TIME_ERROR_INITDT } from "./UsersTimeTableEditOld";
 
@@ -318,10 +317,12 @@ const DeleteIconButton = (props) => {
 
 const CancelButton = () => {
   const history = useHistory();
+  const location = useLocation();
   const {uid} = useParams();
 
   const handleClick = () => {
-    history.push(`/users/timetable/old/edit/${uid}/`);
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+    history.push(`${prefix}/timetable/old/edit/${uid}/`);
   }
 
   return(
@@ -337,6 +338,7 @@ const CancelButton = () => {
 
 const SendButton = (props) => {
   const history = useHistory();
+  const location = useLocation();
   const {uid} = useParams();
   const dispatch = useDispatch();
   const hid = useSelector(state => state.hid);
@@ -369,7 +371,8 @@ const SendButton = (props) => {
           setRecentUser("UID"+uid);
           dispatch(setStore({users: newUsers}));
           dispatch(setSnackMsg('更新しました。', '', ''));
-          history.push(`/users/timetable/old/edit/${uid}/`);
+          const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+          history.push(`${prefix}/timetable/old/edit/${uid}/`);
           break;
         }
       }catch(error){
@@ -467,15 +470,16 @@ const UsersTimeTableBatchEditOld = () => {
 
   if(!user || !(displayService==="放課後等デイサービス" || displayService==="児童発達支援")){
     // 利用者がいない場合は、選択画面に戻す。
-    history.push("/users/timetable/");
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+    history.push(`${prefix}/timetable/`);
     return null;
   }
 
+  const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
   const mainFormProps = {timetable, dateStr, days}
   return(
     <>
-    <LinksTab menu={usersMenu} />
-    <GoBackButton posX={90} posY={0} url={`/users/timetable/edit/${uid}/`}  />
+    <GoBackButton posX={90} posY={0} url={`${prefix}/timetable/old/edit/${uid}/`} />
     <div className={classes.AppPage}>
       <div className="title">計画支援時間一括入力</div>
       <div className="name">{user.name}<span className="sama">さま</span></div>

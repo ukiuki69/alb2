@@ -254,10 +254,11 @@ const UserRow = (props) => {
   const handleClick = (created) => {
     const version = com?.ext?.userTimeTableSetting?.formVersion ?? "2";
     const query = created ?`?created=${created}` :"";
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
     if(version === "1"){
-      history.push(`/users/timetable/old/edit/${user.uid}/${query}`);
+      history.push(`${prefix}/timetable/old/edit/${user.uid}/${query}`);
     }else if(version === "2"){
-      history.push(`/users/timetable/edit/${user.uid}/${query}`);
+      history.push(`${prefix}/timetable/edit/${user.uid}/${query}`);
     }
   }
 

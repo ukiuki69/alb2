@@ -106,12 +106,14 @@ export const UsersTimeTableVersionSwitch = withStyles({
   const location = useLocation();
   const urlParams = location.search;
 
+  const pathPrefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+
   useEffect(() => {
     if(version === "1"){
-      history.push(`/users/timetable/old/edit/${uid}/${urlParams}`);
+      history.push(`${pathPrefix}/timetable/old/edit/${uid}/${urlParams}`);
     }
     if(version === "2"){
-      history.push(`/users/timetable/edit/${uid}/${urlParams}`);
+      history.push(`${pathPrefix}/timetable/edit/${uid}/${urlParams}`);
     }
   }, [version]);
 
@@ -128,10 +130,10 @@ export const UsersTimeTableVersionSwitch = withStyles({
       if(res?.data?.result){
         dispatch(setStore({com: {...com, ext: newComExt}}));
         if(value==="1"){
-          history.push(`/users/timetable/old/edit/${uid}/`);
+          history.push(`${pathPrefix}/timetable/old/edit/${uid}/`);
         }
         if(value==="2"){
-          history.push(`/users/timetable/edit/${uid}/`);
+          history.push(`${pathPrefix}/timetable/edit/${uid}/`);
         }
       }else{
         setSnack({msg: "問題が発生しました。再度お試しください。", severity: 'warning'})
@@ -170,7 +172,8 @@ export const UsersTimeTableGoBackButton = () => {
   const searchParams = new URLSearchParams(location.search);
   const historyParam = searchParams.get("history");
 
-  const url = historyParam === "plan" ?`/plan/manegement` :`/users/timetable/`;
+  const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+  const url = historyParam === "plan" ? `/plan/manegement` : `${prefix}/timetable/`;
   if(limit1079px) return(
     <Button
       variant="outlined" color='primary'

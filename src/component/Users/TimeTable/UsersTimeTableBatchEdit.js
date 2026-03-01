@@ -6,8 +6,6 @@ import { teal } from "@material-ui/core/colors";
 import { AlbHTimeInput } from "../../common/HashimotoComponents";
 import { getFilteredUsers, setRecentUser, univApiCall } from '../../../albCommonModule';
 import { setSnackMsg, setStore } from "../../../Actions";
-import { LinksTab } from "../../common/commonParts";
-import { usersMenu } from "../Users";
 import { getDayStr } from "./UsersTimeTableEditOld";
 import { getJikanKubunAndEnchou } from "../../../modules/elapsedTimes";
 import SnackMsg from "../../common/SnackMsg";
@@ -98,10 +96,12 @@ const useStyles = makeStyles({
 
 const CancelButton = () => {
   const history = useHistory();
+  const location = useLocation();
   const {uid} = useParams();
 
   const handleClick = () => {
-    history.push(`/users/timetable/edit/${uid}/`);
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+    history.push(`${prefix}/timetable/edit/${uid}/`);
   }
 
   return(
@@ -169,7 +169,8 @@ const SendButton = (props) => {
     setRecentUser("UID"+uid);
     dispatch(setStore({users: newUsers}));
     dispatch(setSnackMsg('更新しました。', '', ''));
-    history.push(`/users/timetable/edit/${uid}/`);
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+    history.push(`${prefix}/timetable/edit/${uid}/`);
   }
 
   return(
@@ -350,13 +351,13 @@ const UsersTimeTableBatchEdit = () => {
 
   if(!user || (displayService!=="放課後等デイサービス" && displayService!=="児童発達支援")){
     // 利用者がいない場合は、選択画面に戻す。
-    history.push("/users/timetable/");
+    const prefix = location.pathname.startsWith('/plan/') ? '/plan' : '/users';
+    history.push(`${prefix}/timetable/`);
     return null;
   }
 
   return(
     <>
-    <LinksTab menu={usersMenu} />
     <div className={classes.AppPage}>
       <div className="title">計画支援時間一括入力</div>
       <div className="name">{user.name}<span className="sama">さま</span></div>

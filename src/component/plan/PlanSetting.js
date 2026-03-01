@@ -18,6 +18,9 @@ const useStyles = makeStyles((theme) => ({
     margin: `${82+32}px auto`,
     marginLeft: 'calc((100% - 62px - 900px) / 2 + 62px)',
   },
+  checkBoxWrap: {
+    marginBottom: theme.spacing(1),
+  },
   btnWrap: {
     right: 24,
     bottom: 16,
@@ -92,40 +95,46 @@ const PlanSettingMain = () => {
     <>
       <LinksTab menu={planMenu} />
       <div className={classes.root}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={values.planItemFreeSolo}
-              onChange={handleChange}
-              name="planItemFreeSolo"
-              color="primary"
-            />
-          }
-          label="個別支援計画の「支援目標及び具体的な支援内容」の「項目」に自由記述できるようにする"
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={values.useSubCreator}
-              onChange={handleChange}
-              name="useSubCreator"
-              color="primary"
-            />
-          }
-          label="計画作成時に補助作成者を設定する"
-        />
-        {isCntBokLine ? (
+        <div className={classes.checkBoxWrap}>
           <FormControlLabel
             control={
               <Checkbox
-                checked={values.signRequire}
+                checked={values.planItemFreeSolo}
                 onChange={handleChange}
-                name="signRequire"
+                name="planItemFreeSolo"
                 color="primary"
               />
             }
-            label="個別支援計画書に対する電子サイン依頼を有効にする"
+            label="個別支援計画の「支援目標及び具体的な支援内容」の「項目」に自由記述できるようにする"
           />
+        </div>
+        <div className={classes.checkBoxWrap}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={values.useSubCreator}
+                onChange={handleChange}
+                name="useSubCreator"
+                color="primary"
+              />
+            }
+            label="計画作成時に補助作成者を設定する"
+          />
+        </div>
+        {isCntBokLine ? (
+          <div className={classes.checkBoxWrap}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={values.signRequire}
+                  onChange={handleChange}
+                  name="signRequire"
+                  color="primary"
+                />
+              }
+              label="個別支援計画書に対する電子サイン依頼を有効にする"
+            />
+          </div>
         ) : null}
         <SnackMsgSingle state={snack} setState={setSnack} />
         <div className={classes.btnWrap}>
