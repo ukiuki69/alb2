@@ -15,6 +15,9 @@ precache-manifest.*.js
 # IDE credentials
 .vscode/sftp.json
 
+# Test data (real data, not for version control)
+src/testData/
+
 # Misc
 deploylog.txt
 *.log
