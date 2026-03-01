@@ -6,6 +6,25 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3434 2026/03/01
+### 変更ファイル
+- component/Users/TimeTable/UsersTimeTable.js
+- component/Users/TimeTable/UsersTimeTableEdit.js
+- component/Users/TimeTable/UsersTimeTableEditOld.js
+- component/Users/TimeTable/UsersTimeTableBatchEdit.js
+- component/Users/TimeTable/UsersTimeTableBatchEditOld.js
+- component/Users/TimeTable/UsersTimeTableCommon.js
+- component/plan/PlanSetting.js
+
+### 主な変更内容
+1. 計画支援時間: /plan/timetable 起点の遷移で /users/timetable/ に戻ってしまう問題を修正（全 TimeTable ファイルのパスをプレフィックス動的生成に変更）
+2. 計画支援時間の編集・一括編集画面から LinksTab を非表示
+3. 送信後のページ遷移を削除（送信後は画面に留まる）
+4. PlanSetting: チェックボックス間に checkBoxWrap による余白を追加
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3433 2026/03/01
 ### 変更ファイル
 - component/Users/utils/userEditSubmit.test.js
