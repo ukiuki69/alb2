@@ -13,7 +13,7 @@ export const permissionCheck = (limitPermission, account) => {
 
 export const permissionIsDev = (account) => {
   const permission = parsePermission(account)[0][0];
-  return permission === contants.PERMISSION_DEVELOPER;
+  return permission === PERMISSION_DEVELOPER;
 }
 
 export const permissionCheckTemporary = permissionCheck;

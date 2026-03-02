@@ -625,6 +625,7 @@ export const usersMenu = [
   { link: "/users/bros", label: "兄弟表示", print: true },
   { link: "/users/kanri", label: "管理・協力表示", print: true },
   { link: "/users/timetable/", label: "計画支援時間" },
+  { link: "/users/transfer", label: "ユーザー移管", permission: PERMISSION_DEVELOPER },
 ]
 
 if (seagull) {

@@ -86,7 +86,7 @@ const KyouryokuFrormParts = ({
   const com = useSelector(state=>state.com);
   const user = comMod.getUser(UID, users);
   const cities = com?.etc?.cities ?? [];
-  const isDokujiJougen = cities.find(e=>e.no === user.scity_no).dokujiJougen;
+  const isDokujiJougen = cities.find(e=>e.no === user.scity_no)?.dokujiJougen ?? false;
   const [dokujiHojo, setDokujiHojo] = useState(schedule?.[UID]?.管理事業所?.[0]?.dokujiHojo ?? 0);
   useEffect(()=>{
     console.log('KyouryokuFrormParts', kanrikekka)
