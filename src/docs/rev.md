@@ -6,6 +6,36 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3435 2026/03/02
+### 変更ファイル
+- component/plan/planMakePrompt.js
+- component/plan/planLlmUtils.js（新規）
+- component/plan/planLlmUtils.test.js（新規）
+- component/plan/planPromptBuilders.js（新規）
+- component/plan/planPromptBuilders.test.js（新規）
+- component/plan/PlanConferenceNote.js
+- component/plan/PlanMonitoring.js
+- component/plan/PlanPersonalSupport.js
+- component/plan/PlanPersonalSupportHohou.js
+- component/plan/PlanSenmonShien.js
+- component/Users/TimeTable/UsersTimeTable.js
+- component/Users/UsersTransfer.js（新規）
+- component/Users/Users.js
+- component/schedule/SchUpperLimit.js
+- modules/permissionCheck.js
+- App.js
+
+### 主な変更内容
+1. planMakePrompt リファクタリング: 重複ロジックを planLlmUtils / planPromptBuilders に抽出しユニットテスト追加
+2. Plan各フォーム（ConferenceNote / Monitoring / PersonalSupport / PersonalSupportHohou）に未保存変更の離脱警告ダイアログを追加
+3. PlanMonitoring・UsersTimeTable に電子サイン表示（開発者限定）を追加
+4. permissionCheck: `permissionIsDev` 関数追加・`contants.PERMISSION_DEVELOPER` 参照修正
+5. UsersTransfer: 他事業所からのユーザー移管機能を新規実装（ルート・メニュー登録、開発者権限）
+6. SchUpperLimit: `cities.find(...)?.dokujiJougen` optional chaining でクラッシュ修正
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3434 2026/03/01
 ### 変更ファイル
 - component/Users/TimeTable/UsersTimeTable.js
