@@ -11,7 +11,7 @@ export const useGetUsersService = () => {
   if (!ls.loaded) return [];
   if (!users.length) return [];
   const svcs = users.reduce((svc, user) => {
-    svc.push(...user.service.split(','));
+    if (user.service) svc.push(...user.service.split(','));
     return svc;
   }, []);
 

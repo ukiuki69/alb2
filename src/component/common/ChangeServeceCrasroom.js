@@ -136,7 +136,7 @@ export const ChangeServiceNew = () => {
   const loadingStatus = getLodingStatus(allState);
   const loaded = loadingStatus.loaded && !loadingStatus.error;
 
-  let serviceList = [...new Set(users.flatMap(user => user.service.split(',')))];
+  let serviceList = [...new Set(users.flatMap(user => user.service ? user.service.split(',') : []))];
   const notHasHohou = !serviceList.includes(HOHOU) && serviceList.length >= 1;
   if (getUisCookieInt(uisCookiePos.allowDispAllOnScheduleMonthly) && notHasHohou){
     dispAllPaths.push('/schedule');

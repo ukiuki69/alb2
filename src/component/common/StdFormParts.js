@@ -1757,13 +1757,14 @@ export const HihokenNo = (props) => {
       seterr(true);
       seterrMsg('受給者証番号重複');
     }
+    else if (han.length === 3) {
+      seterr(true);
+      seterrMsg('3桁は仮設定ボタン');
+      setval('');
+    }
     else {
       seterr(false);
       seterrMsg('');
-      if (han.length === 3) {
-        seterrMsg('仮登録します');
-        setLockedAsProvisional(true);
-      }
     }
   }
 

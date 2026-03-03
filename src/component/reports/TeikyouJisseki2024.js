@@ -977,8 +977,17 @@ const MainTable = (props) => {
 
   const schCnt = Object.keys(sch).reduce((prevCnt, did) => {
     if(!/^D\d{8}/.test(did)) return prevCnt;
-    const schDt = sch[did]
-    if(displayAbsence==="1" && schDt?.absence) return prevCnt;
+    const schDt = sch[did] ?? {};
+    const hasDisplayItem = items.some(item => {
+      const elementDt = getKasanElementDt({tableType: 'body', item, schDt, user, com, stdDate, dDate: did});
+      return Boolean(elementDt?.value || elementDt?.value2);
+    });
+    // 欠席でも表示される項目がある場合は無条件で1行として扱う
+    if(hasDisplayItem) return prevCnt + 1;
+    const dAddiction = schDt.dAddiction ?? {};
+    const hasAbsenceAddiction = Object.keys(dAddiction).some(key => ABSENCE_DADDICTION_KEYS.includes(key));
+    // 「欠席時対応加算がない欠席を表示する」が未チェック時のみ欠席行を除外
+    if(displayAbsence !== "1" && schDt.absence && !hasAbsenceAddiction) return prevCnt;
     prevCnt++;
     return prevCnt;
   }, 0);

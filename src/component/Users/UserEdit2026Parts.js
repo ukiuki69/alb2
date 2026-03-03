@@ -320,10 +320,6 @@ export const HnoTextField = ({
     setLocalVal(result.value);
     onChange('hno', result.value);
     onBlur('hno', result);
-    // blurで3桁確定したらロック
-    if (result.value.length === 3) {
-      setLockedAsProvisional(true);
-    }
   };
 
   // 「本設定」: 仮設定をクリアして入力可能に戻す

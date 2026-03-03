@@ -17,7 +17,7 @@ import { usersMenu } from './Users';
 // AppBar: 47px fixed、LinksTab: top:47 + height:48 = 95px
 const HEADER_TOP = 95;
 // 列ヘッダー行の高さ分下 (padding 6+6 + lineHeight ~21 + border 1 ≈ 34px)
-const GROUP_TOP = HEADER_TOP + 34;
+const GROUP_TOP = HEADER_TOP + 27;
 
 const useStyles = makeStyles({
   root: {
@@ -62,12 +62,19 @@ const useStyles = makeStyles({
     zIndex: 100,
   },
   countBadge: {
-    backgroundColor: 'rgba(0, 150, 136, 0.15)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     borderRadius: 12,
     padding: '4px 12px',
     fontSize: 13,
     color: teal[800],
     fontWeight: 'bold',
+  },
+  executeButton: {
+    '&.MuiButton-contained.Mui-disabled': {
+      opacity: 1,
+      color: '#fff',
+      backgroundColor: '#9e9e9e',
+    },
   },
   loading: {
     display: 'flex',
@@ -78,6 +85,20 @@ const useStyles = makeStyles({
   noData: {
     marginTop: 40,
     color: '#888',
+  },
+  stickyThMask: {
+    position: 'relative',
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: -12,
+      height: 12,
+      backgroundColor: '#fff',
+      pointerEvents: 'none',
+
+    },
   },
 });
 
@@ -116,6 +137,9 @@ const UsersTransfer = () => {
 
   const allState = useSelector(state => state);
   const { hid, bid, stdDate, accountLst, users } = allState;
+  const accountState = Array.isArray(allState.account)
+    ? allState.account
+    : (Array.isArray(accountLst) ? accountLst : []);
 
   const [otherOfficeUsers, setOtherOfficeUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -229,105 +253,120 @@ const UsersTransfer = () => {
     return shortWord(first);
   };
 
+  const sameHidAccounts = accountState.filter(acc => acc.hid === hid);
+  const isNoDisplayOnly =
+    accountState.length === 1 && sameHidAccounts.length === 1;
+
   return (
     <div>
       <LinksTab menu={usersMenu} />
       <div className={classes.root}>
         <div className={classes.title}>他事業所からのユーザー移管</div>
-        {loading && (
-          <div className={classes.loading}>
-            <CircularProgress size={24} />
-            <span>他事業所のユーザーを取得中...</span>
-          </div>
-        )}
-        {!loading && otherOfficeUsers.length === 0 && (
-          <div className={classes.noData}>移管可能なユーザーはいません。</div>
-        )}
-        {!loading && otherOfficeUsers.length > 0 && (
-          <table className={classes.table}>
-            <thead>
-              <tr>
-                <th style={colTh({ width: 40 })}></th>
-                <th style={colTh({ width: 130 })}>受給者証番号</th>
-                <th style={colTh()}>利用者名</th>
-                <th style={colTh({ width: 60 })}>学齢</th>
-                <th style={colTh({ width: 80 })}>サービス</th>
-                <th style={colTh()}>保護者名</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bidOrder.map(fromBid => (
-                <React.Fragment key={fromBid}>
+        {isNoDisplayOnly ? (
+          <div className={classes.noData}>表示するデータがありません</div>
+        ) : (
+          <>
+            {loading && (
+              <div className={classes.loading}>
+                <CircularProgress size={24} />
+                <span>他事業所のユーザーを取得中...</span>
+              </div>
+            )}
+            {!loading && otherOfficeUsers.length === 0 && (
+              <div className={classes.noData}>移管可能なユーザーはいません。</div>
+            )}
+            {!loading && otherOfficeUsers.length > 0 && (
+              <table className={classes.table}>
+                <thead>
                   <tr>
-                    <td colSpan={6} style={groupTd}>
-                      {sbnameMap[fromBid] || fromBid}
-                    </td>
+                    <th className={classes.stickyThMask} style={colTh({ width: 40 })}></th>
+                    <th className={classes.stickyThMask} style={colTh({ width: 130 })}>受給者証番号</th>
+                    <th className={classes.stickyThMask} style={colTh()}>利用者名</th>
+                    <th className={classes.stickyThMask} style={colTh({ width: 60 })}>学齢</th>
+                    <th className={classes.stickyThMask} style={colTh({ width: 80 })}>サービス</th>
+                    <th className={classes.stickyThMask} style={colTh()}>保護者名</th>
                   </tr>
-                  {grouped[fromBid].map(u => (
-                    <tr key={u.hno}>
-                      <td>
-                        <Checkbox
-                          size='small'
-                          checked={!!checked[u.hno]}
-                          onChange={() => handleCheck(u.hno)}
-                        />
-                      </td>
-                      <td style={{ fontFamily: 'monospace' }}>{u.hno}</td>
-                      <td>
-                        <div>{u.name}</div>
-                        <div className={classes.kana}>{u.kana}</div>
-                      </td>
-                      <td>{u.ageStr}</td>
-                      <td>{serviceShort(u.service)}</td>
-                      <td>
-                        <div>{u.pname}</div>
-                        <div className={classes.kana}>{u.pkana}</div>
-                      </td>
-                    </tr>
+                </thead>
+                <tbody>
+                  {bidOrder.map(fromBid => (
+                    <React.Fragment key={fromBid}>
+                      <tr>
+                        <td colSpan={6} style={groupTd}>
+                          {sbnameMap[fromBid] || fromBid}
+                        </td>
+                      </tr>
+                      {grouped[fromBid].map(u => (
+                        <tr key={u.hno}>
+                          <td>
+                            <Checkbox
+                              size='small'
+                              checked={!!checked[u.hno]}
+                              onChange={() => handleCheck(u.hno)}
+                            />
+                          </td>
+                          <td style={{ fontFamily: 'monospace' }}>{u.hno}</td>
+                          <td>
+                            <div>{u.name}</div>
+                            <div className={classes.kana}>{u.kana}</div>
+                          </td>
+                          <td>{u.ageStr}</td>
+                          <td>{serviceShort(u.service)}</td>
+                          <td>
+                            <div>{u.pname}</div>
+                            <div className={classes.kana}>{u.pkana}</div>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
                   ))}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
+                </tbody>
+              </table>
+            )}
+          </>
         )}
       </div>
 
       {/* 固定ボタンバー: officeSection右端揃え、背景透過、ボーダーなし */}
-      <div className={classes.fixedBar}>
-        {checkedUsers.length > 0 && (
-          <span className={classes.countBadge}>{checkedUsers.length}件選択中</span>
-        )}
-        <Button
-          variant='contained'
-          color='primary'
-          disabled={checkedUsers.length === 0 || transferring || loading}
-          onClick={() => setConfirmOpen(true)}
-        >
-          移管実行
-        </Button>
-        <Button variant='outlined' onClick={() => history.push('/users')} disabled={transferring}>
-          キャンセル
-        </Button>
-      </div>
-
-      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth='xs'>
-        <DialogTitle>移管の確認</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            {checkedUsers.length}人のユーザーは当月付にて移管します、よろしいですか？
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>キャンセル</Button>
-          <Button
-            onClick={handleTransfer}
-            style={{ color: red[700] }}
-            disabled={transferring}
-          >
-            移管する
+      {!isNoDisplayOnly && (
+        <div className={classes.fixedBar}>
+          {checkedUsers.length > 0 && (
+            <span className={classes.countBadge}>{checkedUsers.length}件選択中</span>
+          )}
+          <Button variant='contained' color='secondary' onClick={() => history.push('/users')} disabled={transferring}>
+            キャンセル
           </Button>
-        </DialogActions>
-      </Dialog>
+          <Button
+            className={classes.executeButton}
+            variant='contained'
+            color='primary'
+            disabled={checkedUsers.length === 0 || transferring || loading}
+            onClick={() => setConfirmOpen(true)}
+          >
+            移管実行
+          </Button>
+        </div>
+      )}
+
+      {!isNoDisplayOnly && (
+        <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth='xs'>
+          <DialogTitle>移管の確認</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              {checkedUsers.length}人のユーザーは当月付にて移管します、よろしいですか？
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setConfirmOpen(false)}>キャンセル</Button>
+            <Button
+              onClick={handleTransfer}
+              style={{ color: red[700] }}
+              disabled={transferring}
+            >
+              移管する
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </div>
   );
 };

@@ -625,7 +625,9 @@ export const usersMenu = [
   { link: "/users/bros", label: "兄弟表示", print: true },
   { link: "/users/kanri", label: "管理・協力表示", print: true },
   { link: "/users/timetable/", label: "計画支援時間" },
-  { link: "/users/transfer", label: "ユーザー移管", permission: PERMISSION_DEVELOPER },
+]
+export const usersExtMenu = [
+  { link: "/users/transfer", label: "ユーザー移管" },
 ]
 
 if (seagull) {
@@ -1408,7 +1410,7 @@ const UsersMain = () => {
   //     ?true :false;
   const explanationTextsProps = {location, users: fusers, schedule, service};
   return (<>
-    <LinksTab menu={usersMenu} />
+    <LinksTab menu={usersMenu} extMenu={usersExtMenu} />
     <div className='AppPage userLst fixed'>
       <DisplayInfoOnPrint />
       <UserListTitle 
