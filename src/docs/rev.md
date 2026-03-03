@@ -6,6 +6,41 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3437 2026/03/03
+### 変更ファイル
+- component/Users/UserEdit2026.js
+- component/Users/UserEdit2026Parts.js
+- component/Users/Users.js
+- component/Users/UsersTransfer.js
+- component/Users/useGetUsersService.js
+- component/Users/utils/userEditValidation.js
+- component/common/ChangeServeceCrasroom.js
+- component/common/StdFormParts.js
+- component/reports/TeikyouJisseki2024.js
+- src/rules/command.md
+
+### 主な変更内容
+1. 受給者証番号3桁手入力禁止: バリデーションを「エラー表示＋値クリア」に統一（UserEdit2026Parts / userEditValidation / StdFormParts）
+2. UsersTransfer UI改善: 単一事業所時の「データなし」表示・ボタン配置変更・テーブルヘッダーマスク追加・accountState安全取得
+3. Users.js: `ユーザー移管`を`usersExtMenu`として`usersMenu`から分離し`LinksTab`に`extMenu`で渡す
+4. service null クラッシュ修正（useGetUsersService / ChangeServeceCrasroom）
+5. 提供実績カウントロジック修正（TeikyouJisseki2024）: 欠席でも表示項目がある行を正しくカウント
+6. UserEdit2026: 管理事業所・加算ボタンの minWidth 拡張・左揃えスタイル追加
+
+### 取り込まれたdev側の変更
+- なし
+
+## rev.3436 2026/03/02
+### 変更ファイル
+- src/rules/command.md
+
+### 主な変更内容
+1. 障害調査メモ追記: ahduserレコード消失事象の調査内容を記録
+2. UserEdit2026 / UserEditNoDialog での削除ガード調査指示を追記
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3435 2026/03/02
 ### 変更ファイル
 - component/plan/planMakePrompt.js
