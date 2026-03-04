@@ -1,6 +1,6 @@
 import { formatDate } from '../../../modules/dateUtils';
 import { zp } from '../../../modules/stringUtils';
-import { HOUDAY } from '../../../modules/contants';
+import { HOUDAY, JIHATSU, HOHOU } from '../../../modules/contants';
 
 // 必須フィールド定義
 export const REQUIRED_FIELDS = [
@@ -60,6 +60,10 @@ export const buildInitialFormValues = (thisUser, service, addnew, classroom) => 
   // 複数サービスのときは動的キーを追加
   if (thisUser.service && thisUser.service.includes(',')) {
     const svcs = thisUser.service.split(',');
+    // multiServiceXXX チェックボックスの初期値を設定（保存時バリデーション用）
+    [HOUDAY, JIHATSU, HOHOU].forEach(svc => {
+      values['multiService' + svc] = svcs.includes(svc);
+    });
     svcs.forEach(svc => {
       const info = (thisUser.etc && thisUser.etc.multiSvc && thisUser.etc.multiSvc[svc]) || {};
       values[svc + '-volume'] = info.volumeStd ? '0' : (info.volume || thisUser.volume || '');

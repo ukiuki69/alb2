@@ -56,7 +56,7 @@ import Rev from './Rev';
 import { usePlanExpiry } from './component/plan/usePlanExpiry';
 import { useSideToolBarVisibility } from './modules/uiEvents';
 
-const LIMIT500px_MENUITEMS = ["連絡帳", "予定実績登録", "日報", "設定"];
+const LIMIT500px_MENUITEMS = ["連絡帳", "予定実績登録", "日報", "設定", "支援計画"];
 
 // fontAWESOMEアイコンのスタイル
 const iconStyle = { padding: 0, fontSize: 22, marginRight: 8, marginLeft: 2,};

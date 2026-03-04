@@ -62,7 +62,7 @@ import { Monitoring } from './Monitoring.js';
 import { MonitoringHohou } from './MonitoringHohou.js';
 import { MonitoringSenmon } from './MonitoringSenmon.js';
 import EmailIcon from '@material-ui/icons/Email';
-import { Dialog, DialogActions, DialogContent, DialogTitle } from '@material-ui/core';
+import { Dialog, DialogActions, DialogContent, DialogTitle, useMediaQuery } from '@material-ui/core';
 import { AlbHMuiTextField, PdfCard, useLocalStorageState } from '../common/HashimotoComponents.js';
 import { generatePdfBlob } from '../ContactBook/CntbkSendReports.js';
 import { sendPdfs } from '../ContactBook/CntbkCommon.js';
@@ -1609,6 +1609,7 @@ const ReportsMain = () => {
   const dispatch = useDispatch();
   const {filter} = useParams();
   const classes = useStyles();
+  const isMobile = useMediaQuery('(max-width:599px)');
   const stdDate = useSelector(state => state.stdDate);
   const [stdYear, stdMonth] = stdDate.split("-");
   const hid = useSelector(state => state.hid);
@@ -2305,6 +2306,21 @@ const ReportsMain = () => {
     ...permissionPorps , ...printButtonCommonProps,
     permissionFilting: 90,
   }
+  const itemFromUrl = new URLSearchParams(location.search).get("item");
+  if (isMobile && itemFromUrl) {
+    return (
+      <>
+        <Assessment userList={userList} preview={preview} created={planCreated} />
+        <PersonalSupport userList={userList} preview={preview} created={planCreated} />
+        <ConferenceNote userList={userList} preview={preview} created={planCreated} />
+        <Monitoring userList={userList} preview={preview} created={planCreated} />
+        <MonitoringHohou userList={userList} preview={preview} created={planCreated} />
+        <MonitoringSenmon userList={userList} preview={preview} created={planCreated} />
+        <SenmonShien userList={userList} preview={preview} created={planCreated} />
+      </>
+    );
+  }
+
   return(
     <div className='AppPage reports'>
       <NotDispLowCh />
@@ -2446,13 +2462,17 @@ const Reports = () => {
   const allstate = useSelector(state=>state);
   const {com, service, serviceItems, account} = allstate;
   const loadingStatus = comMod.getLodingStatus(allstate);
+  const isMobile = useMediaQuery('(max-width:599px)');
+  const location = useLocation();
+  const history = useHistory();
+  const itemFromUrl = new URLSearchParams(location.search).get("item");
 
   // 基本設定項目の確認
   const tService = service? service: serviceItems[0]
-  const comAdic = comMod.findDeepPath(com, ['addiction', tService]);  
+  const comAdic = comMod.findDeepPath(com, ['addiction', tService]);
   if (loadingStatus.loaded && !comAdic){
     return(
-      <StdErrorDisplay 
+      <StdErrorDisplay
         errorText = '請求設定項目が未設定です。'
         errorSubText = {`帳票作成開始に必要な基本設定項目がありません。設定メニューの
         「請求・加算」から定員や地域区分などを設定して下さい。`}
@@ -2462,6 +2482,26 @@ const Reports = () => {
   }
   const permission = comMod.parsePermission(account)[0][0];
   if (loadingStatus.loaded){
+    if (isMobile && itemFromUrl) {
+      return (
+        <>
+          <Button
+            size="small"
+            onClick={() => history.goBack()}
+            style={{
+              position: 'fixed', top: 60, right: 8, zIndex: 100,
+              minWidth: 0, padding: '4px 14px',
+              background: 'rgba(255,255,255,0.85)',
+              borderRadius: 16,
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+            }}
+          >
+            ← 戻る
+          </Button>
+          <ReportsMain />
+        </>
+      );
+    }
     return (
       <>
       <RepportsLinksTab />

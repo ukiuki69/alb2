@@ -204,8 +204,12 @@ const UsersTransfer = () => {
   const handleTransfer = async () => {
     setTransferring(true);
     setConfirmOpen(false);
+    const hasAutoSort = !!(allState.com?.ext?.selectedOrder?.order);
+    const pi = v => parseInt(v) || 0;
+    const currentSindexMax = (users || []).reduce((v, e) => pi(e.sindex) > v ? pi(e.sindex) : v, 0);
     try {
-      for (const u of checkedUsers) {
+      for (let i = 0; i < checkedUsers.length; i++) {
+        const u = checkedUsers[i];
         // 他事業所データをカレントbidへの新規登録として準備
         const sendData = { ...u };
         // bid をカレント事業所に変更（新規登録）
@@ -220,8 +224,13 @@ const UsersTransfer = () => {
           sendData.etc = JSON.stringify(newEtc);
         }
         sendData.classroom = '';
+        sendData.kanri_type = '';
         sendData.date = stdDate;
         delete sendData._fromBid;
+        // ソート設定がない場合は sindex を末尾（最大値+10刻み）に設定
+        if (!hasAutoSort) {
+          sendData.sindex = currentSindexMax + 10 * (i + 1);
+        }
         // 送信: univApiCall を使用（dispatch(Actions.updateUser) は使わない）
         const res = await univApiCall({ a: 'sendUserWithEtc', ...escapeSqlQuotes(sendData) });
         if (!res?.data?.result) throw new Error('移管に失敗しました: ' + u.hno);
@@ -229,7 +238,11 @@ const UsersTransfer = () => {
       // 送信完了後: Actions.listUsers でDBから最新の users を取得
       const prms = { a: 'lu', hid, bid, date: stdDate };
       const planPrms = { a: 'fetchUsersPlan', item: 'timetable', hid, bid, lastmonth: stdDate.slice(0, 7) };
-      dispatch(Actions.listUsers(prms, planPrms));
+      await dispatch(Actions.listUsers(prms, planPrms));
+      // ソート設定がある場合はソートを適用してDBに保存
+      if (hasAutoSort) {
+        dispatch(Actions.sortUsersAsync());
+      }
       history.push('/users');
     } finally {
       setTransferring(false);

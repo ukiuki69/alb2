@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core';
-import { grey } from '@material-ui/core/colors';
+import { makeStyles, useMediaQuery } from '@material-ui/core';
+import { grey, teal } from '@material-ui/core/colors';
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { processDeepBrToLf } from '../../../modules/newlineConv';
@@ -85,9 +85,78 @@ const useStyles = makeStyles({
       fontSize: 24, marginBottom: 8
     },
     '@media print': {display: 'none'}
-  }
+  },
+
+  // ─── スマホ用スタイル ─────────────────────────────────────────────────────
+  spWrapper: {
+    fontFamily: 'inherit',
+    width: '100%',
+    maxWidth: '100vw',
+    overflowX: 'hidden',
+    boxSizing: 'border-box',
+  },
+  spHeader: { marginBottom: 12 },
+  spTitle: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    wordBreak: 'break-all',
+    lineHeight: 1.4,
+    marginBottom: 2,
+  },
+  spCreateDate: { fontSize: '0.85rem', color: grey[600], marginBottom: 8 },
+  spLabel: {
+    backgroundColor: teal[50],
+    borderBottom: `1px solid ${teal[600]}`,
+    color: teal[900],
+    padding: '4px 8px',
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+    wordBreak: 'break-all',
+  },
+  spValue: {
+    padding: '6px 8px',
+    whiteSpace: 'pre-wrap',
+    lineHeight: 1.6,
+    minHeight: '1.6rem',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word',
+  },
+  spField: {
+    marginBottom: 8,
+    borderBottom: `1px solid ${grey[200]}`,
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  spSection: { marginBottom: 12 },
+  spGoalCard: {
+    border: `1px solid ${grey[200]}`,
+    borderRadius: 4,
+    marginBottom: 12,
+    overflow: 'hidden',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
+  },
+  spGoalHeader: {
+    backgroundColor: teal[50],
+    borderBottom: `1px solid ${teal[200]}`,
+    padding: '4px 8px',
+    fontWeight: 'bold',
+    color: teal[800],
+    fontSize: '0.85rem',
+  },
+  spGoalBody: { padding: '6px 8px' },
+  spGoalSubLabel: { fontSize: '0.75rem', color: grey[600], marginTop: 6, marginBottom: 2 },
+  spGoalMeta: { display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 },
+  spGoalMetaItem: { fontSize: '0.8rem', color: grey[700] },
+  spSignCol: {
+    borderBottom: `1px solid ${grey[700]}`,
+    paddingBottom: 8,
+    minHeight: 48,
+    marginBottom: 16,
+  },
 });
 
+// ─── PC用サブコンポーネント（git HEAD 完全復元） ───────────────────────────────
 const MakerInfoTable = ({content}) => {
   const classes = useStyles();
 
@@ -194,11 +263,55 @@ const NoticeTable = ({content}) => {
   )
 }
 
+// ─── スマホ用サブコンポーネント ───────────────────────────────────────────────
+const SpFieldBlock = ({ label, children, classes }) => (
+  <div className={classes.spField}>
+    <div className={classes.spLabel}>{label}</div>
+    <div className={classes.spValue}>{children}</div>
+  </div>
+);
+
+const SpProgressCard = ({ dt, psDt, idx, classes }) => {
+  return (
+    <div className={classes.spGoalCard}>
+      <div className={classes.spGoalHeader}>{idx + 1}. {safeBrtoLf(psDt?.["項目"]) || `項目${idx + 1}`}</div>
+      <div className={classes.spGoalBody}>
+        {psDt?.["支援目標"] && (
+          <>
+            <div className={classes.spGoalSubLabel}>具体的な達成目標</div>
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{safeBrtoLf(psDt["支援目標"])}</div>
+          </>
+        )}
+        {dt?.["目標達成度"] && (
+          <>
+            <div className={classes.spGoalSubLabel}>目標達成度</div>
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{safeBrtoLf(dt["目標達成度"])}</div>
+          </>
+        )}
+        <div className={classes.spGoalMeta}>
+          {dt?.["評価"] && (
+            <span className={classes.spGoalMetaItem}>評価：{safeBrtoLf(dt["評価"])}</span>
+          )}
+        </div>
+        {dt?.["考察"] && (
+          <>
+            <div className={classes.spGoalSubLabel}>考察</div>
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{safeBrtoLf(dt["考察"])}</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── メインコンポーネント ────────────────────────────────────────────────────
 export const MonitoringSheet = (props) => {
   const classes = useStyles();
+  const isMobile = useMediaQuery('(max-width:599px)');
   const {user, content, created, pSContent, titleSuffix} = props;
   const com = useSelector(state => state.com);
   const showStaffName = com?.ext?.reportsSetting?.usersPlan?.monitoringShowStaffName ?? com?.etc?.configReports?.usersPlan?.monitoringShowStaffName ?? false;
+  const [createdYear, createdMonth, createdDate] = created.split("-");
 
   if(!pSContent) return(
     <div className={classes.notEnoughData}>
@@ -211,6 +324,78 @@ export const MonitoringSheet = (props) => {
   const adjustedPSContent = processDeepBrToLf(pSContent);
   const sheetTitle = `モニタリング表${titleSuffix || ''}`;
 
+  const hopeFields = [
+    { label: '本人の希望', key: '本人の希望' },
+    { label: 'ご家族の要望', key: 'ご家族の希望' },
+    { label: '関係者要望', key: '関係者の希望' },
+  ].filter(f => adjustedContent[f.key]);
+
+  // ── スマホ表示 ─────────────────────────────────────────────────────────────
+  if (isMobile) {
+    const progressList = adjustedContent["支援経過"] ?? [];
+    return (
+      <div className={classes.spWrapper}>
+        <div className={classes.spHeader}>
+          <div className={classes.spTitle}>{user.name}さんの{sheetTitle}</div>
+          <div className={classes.spCreateDate}>作成日：{createdYear}年{createdMonth}月{createdDate}日</div>
+        </div>
+
+        <SpFieldBlock label="計画者" classes={classes}>
+          {adjustedContent?.["作成者"] ?? ""}
+        </SpFieldBlock>
+
+        {progressList.length > 0 && (
+          <div className={classes.spSection}>
+            <div className={classes.spLabel} style={{ marginBottom: 8 }}>支援経過・目標評価</div>
+            <div style={{ paddingLeft: 4 }}>
+              {progressList.map((dt, i) => (
+                <SpProgressCard
+                  key={i}
+                  dt={dt}
+                  psDt={adjustedPSContent["支援目標"]?.[i] ?? {}}
+                  idx={i}
+                  classes={classes}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <SpFieldBlock label="長期目標" classes={classes}>
+          {safeBrtoLf(adjustedPSContent["長期目標"])}
+        </SpFieldBlock>
+        <SpFieldBlock label="長期目標に対する考察" classes={classes}>
+          {safeBrtoLf(adjustedContent["長期目標"])}
+        </SpFieldBlock>
+        <SpFieldBlock label="短期目標" classes={classes}>
+          {safeBrtoLf(adjustedPSContent["短期目標"])}
+        </SpFieldBlock>
+        <SpFieldBlock label="短期目標に対する考察" classes={classes}>
+          {safeBrtoLf(adjustedContent["短期目標"])}
+        </SpFieldBlock>
+
+        {hopeFields.map(f => (
+          <SpFieldBlock key={f.key} label={f.label} classes={classes}>
+            {safeBrtoLf(adjustedContent[f.key])}
+          </SpFieldBlock>
+        ))}
+
+        <SpFieldBlock label="備考" classes={classes}>
+          {safeBrtoLf(adjustedContent["備考"])}
+        </SpFieldBlock>
+
+        <div style={{ marginTop: 16, paddingBottom: 8 }}>
+          説明同意交付日付<span style={{ paddingLeft: 16 }}>令和　　年　　月　　日</span>
+        </div>
+        <div className={classes.spSignCol}>保護者氏名</div>
+        <div className={classes.spSignCol}>
+          児童発達支援管理責任者{showStaffName && adjustedContent["作成者"] ? `　　${adjustedContent["作成者"]}` : ""}
+        </div>
+      </div>
+    );
+  }
+
+  // ── PC表示（git HEAD 完全復元） ───────────────────────────────────────────
   return(
     <div className={classes.sheetWrapper}>
       <SheetHeader user={user} created={created} title={sheetTitle} isThreeColumn={true} />

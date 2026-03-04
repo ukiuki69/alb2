@@ -29,12 +29,15 @@ const useStyles = makeStyles({
  * @param {string} titleSuffix - タイトルの後ろに追加する文字列（例：「（原案）」）
  * @param {boolean} isThreeColumn - 3列レイアウトの場合true（デフォルトはfalse：2列）
  */
-export const SheetHeader = ({ user, created, title, titleSuffix = '', isThreeColumn = false }) => {
+/**
+ * @param {boolean} hidePersonalInfo - trueの場合、生年月日・受給者証番号・施設名・利用サービスを非表示
+ */
+export const SheetHeader = ({ user, created, title, titleSuffix = '', isThreeColumn = false, hidePersonalInfo = false }) => {
   const classes = useStyles();
   const com = useSelector(state => state.com);
   const hideAddress = com?.ext?.reportsSetting?.usersPlan?.hideAddress ?? com?.etc?.configReports?.usersPlan?.hideAddress ?? false;
-  
-  
+
+
   const smallSt = { fontSize: '1rem' };
   const [createdYear, createdMonth, createdDate] = created.split("-");
   const [birthdayYear, birthdayMonth, birthdayDate] = (user?.birthday ?? "").split("-");
@@ -51,19 +54,30 @@ export const SheetHeader = ({ user, created, title, titleSuffix = '', isThreeCol
             {user.name}さん<span style={smallSt}>の{title}</span>{titleSuffix}
           </td>
         </tr>
-        <tr>
-          <td colSpan={leftColSpan}>生年月日　　：{birthdayYear && birthdayMonth && birthdayDate ? `${birthdayYear}年${birthdayMonth}月${birthdayDate}日` : ""}（{user.ageStr}・{user.age}歳）</td>
-          <td className='createDate'>作成日：{createdYear}年{createdMonth}月{createdDate}日</td>
-        </tr>
-        <tr>
-          <td colSpan={leftColSpan}>受給者証番号：{user.hno ?? ""}</td>
-          <td className='bname'>施設名：{user?.bname ?? ""}</td>
-        </tr>
-        <tr>
-          <td colSpan={leftColSpan}>{!hideAddress && user.postal ? `住所　　　　：〒${user.postal}` : ""}</td>
-          <td className='service'>利用サービス：{user?.service ?? ""}</td>
-        </tr>
-        {!hideAddress && Boolean(user.city || user.address) && (
+        {!hidePersonalInfo && (
+          <tr>
+            <td colSpan={leftColSpan}>生年月日　　：{birthdayYear && birthdayMonth && birthdayDate ? `${birthdayYear}年${birthdayMonth}月${birthdayDate}日` : ""}（{user.ageStr}・{user.age}歳）</td>
+            <td className='createDate'>作成日：{createdYear}年{createdMonth}月{createdDate}日</td>
+          </tr>
+        )}
+        {hidePersonalInfo && (
+          <tr>
+            <td colSpan={titleColSpan} className='createDate'>作成日：{createdYear}年{createdMonth}月{createdDate}日</td>
+          </tr>
+        )}
+        {!hidePersonalInfo && (
+          <tr>
+            <td colSpan={leftColSpan}>受給者証番号：{user.hno ?? ""}</td>
+            <td className='bname'>施設名：{user?.bname ?? ""}</td>
+          </tr>
+        )}
+        {!hidePersonalInfo && (
+          <tr>
+            <td colSpan={leftColSpan}>{!hideAddress && user.postal ? `住所　　　　：〒${user.postal}` : ""}</td>
+            <td className='service'>利用サービス：{user?.service ?? ""}</td>
+          </tr>
+        )}
+        {!hidePersonalInfo && !hideAddress && Boolean(user.city || user.address) && (
           <tr>
             <td colSpan={leftColSpan}>　　　　　　　{user.city ?? ""}{user.address ?? ""}</td>
             <td></td>

@@ -4,7 +4,8 @@ import { useLocalStorageState } from "../common/HashimotoComponents";
 import { univApiCall } from "../../modules/api";
 import { changeUserReportDtValue } from "./DailyReportCommon";
 import { Button, Checkbox, TextField } from "@material-ui/core";
-import { blue, deepOrange, green, grey, indigo, pink, purple, teal } from "@material-ui/core/colors";
+import { blue, grey, pink, teal } from "@material-ui/core/colors";
+import { DomainBadges, toDomainsArray } from "../common/DomainBadges";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import CheckCircleOutlineIcon from "@material-ui/icons/CheckCircleOutline";
@@ -75,54 +76,8 @@ const toGoalDomainsText = (value) => {
   return "";
 };
 
-const toGoalDomainsArray = (value) => {
-  if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
-  if (typeof value === "string") {
-    return value.split(",").map(v => v.trim()).filter(Boolean);
-  }
-  return [];
-};
+const toGoalDomainsArray = toDomainsArray;
 
-const toShortDomainName = (name) => {
-  const map = {
-    "人間関係・社会性": "社会性",
-    "運動・感覚": "運動",
-    "認知・行動": "認知",
-    "言語・コミュ": "言語",
-    "健康・生活": "生活",
-  };
-  return map[name] || name;
-};
-
-const getDomainColorSet = (name) => {
-  switch (name) {
-    case "人間関係・社会性":
-      return { text: teal[700], border: teal[300], bg: teal[50] };
-    case "運動・感覚":
-      return { text: indigo[700], border: indigo[300], bg: indigo[50] };
-    case "認知・行動":
-      return { text: deepOrange[700], border: deepOrange[300], bg: deepOrange[50] };
-    case "言語・コミュ":
-      return { text: purple[700], border: purple[300], bg: purple[50] };
-    case "健康・生活":
-      return { text: green[700], border: green[300], bg: green[50] };
-    default:
-      return { text: grey[700], border: grey[400], bg: grey[100] };
-  }
-};
-
-const getDomainChipStyle = (name) => {
-  const colors = getDomainColorSet(name);
-  return {
-    fontSize: 11,
-    lineHeight: 1.2,
-    border: `1px solid ${colors.border}`,
-    borderRadius: 3,
-    padding: "2px 6px",
-    color: colors.text,
-    backgroundColor: colors.bg,
-  };
-};
 
 const getDisplayWidth = (text) => {
   if (!text) return 0;
@@ -441,14 +396,9 @@ export const GoalEvaluationForm = (props) => {
                   {truncateByFullWidth25(goal.target || "-")}
                 </span>
               )}
-              {goal.domainsArray.length > 0 ? goal.domainsArray.map((d, idx) => (
-                <span
-                  key={`${goal.goalKey}-domain-${idx}`}
-                  style={getDomainChipStyle(d)}
-                >
-                  {toShortDomainName(d)}
-                </span>
-              )) : <span>-</span>}
+              {goal.domainsArray.length > 0
+                ? <DomainBadges domains={goal.domainsArray} />
+                : <span>-</span>}
             </div>
             {expandedGoalKey === goal.goalKey && (
               <div style={{ marginBottom: 8, padding: "6px 8px", backgroundColor: grey[50], borderRadius: 4 }}>

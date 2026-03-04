@@ -25,8 +25,6 @@ import SnackMsg from '../common/SnackMsg';
 import SchLokedDisplay from '../common/SchLockedDisplay';
 import { GetNextHist } from './Users';
 import { NextUserDisp } from './UserEditNoDialog';
-import { AddBrotherButton } from './AddBrotherButton';
-import { GotoUserAddiction } from '../common/GotoButtonsAroundUsers';
 import { UnivCheckbox } from '../common/univFormParts';
 import { llmApiCall } from '../../modules/llmApiCall';
 import { forbiddenPtn } from '../common/StdFormParts';
@@ -131,6 +129,7 @@ const useStyles = makeStyles({
   },
   buttonWrapper: {
     marginTop: 32,
+    marginBottom: 60,
     textAlign: 'right',
     '& > button': { marginLeft: 8 },
   },
@@ -1812,17 +1811,6 @@ const UserEdit2026 = () => {
                 id='useredit-deleteuser'
               />
             }
-            <AddBrotherButton
-              thisUser={thisUser}
-              handleSubmit={handleSubmit}
-              hnoList={hnoList}
-              brosIndex={brosIndex}
-              setBrosIndex={(v) => { setBrosIndex(v); handleFieldChange('brosIndex', v); }}
-              history={history}
-              setSnack={setSnack}
-              editOn={editOn}
-            />
-            <GotoUserAddiction uid={uids} onBeforeNavigate={handleSubmit} />
             <mui.ButtonGP
               color='secondary'
               label='キャンセル'

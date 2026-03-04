@@ -7,7 +7,7 @@ import { getFilteredUsers, recentUserStyle, univApiCall } from '../../albCommonM
 import { planMenu, navigateToPlanAdd, PlanOverlay } from './planCommonPart';
 import { useAutoScrollToRecentUser } from '../common/useAutoScrollToRecentUser';
 import { teal, blue, brown, orange, yellow, cyan, green, lime, purple, grey, red } from '@material-ui/core/colors';
-import { Button, colors, makeStyles, Menu, MenuItem, ListItemIcon, ListItemText, Dialog, DialogTitle, DialogContent, Tooltip } from '@material-ui/core';
+import { Button, colors, makeStyles, Menu, MenuItem, ListItemIcon, ListItemText, Dialog, DialogTitle, DialogContent, Tooltip, IconButton, useMediaQuery } from '@material-ui/core';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import SnackMsgSingle from '../common/SnackMsgSingle';
@@ -172,7 +172,62 @@ const useStyles = makeStyles({
     fontSize: '0.75rem',
     textAlign: 'center',
     boxShadow: '0 0 2px 0 rgba(0, 0, 0, 0.4)',
-  }
+  },
+
+  // ─── スマホ用スタイル ─────────────────────────────────────────────────────
+  spWrapper: {
+    width: '100%',
+    maxWidth: '100vw',
+    marginTop: 64,
+    overflowX: 'hidden',
+    boxSizing: 'border-box',
+    paddingBottom: 24,
+  },
+  spSectionHeader: {
+    position: 'sticky',
+    top: 56,
+    backgroundColor: teal[50],
+    borderBottom: `1px solid ${teal[200]}`,
+    padding: '8px 12px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    zIndex: 10,
+    boxSizing: 'border-box',
+  },
+  spUserRow: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '12px 16px',
+    borderBottom: `1px solid ${grey[200]}`,
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    '&:hover': {
+      backgroundColor: grey[50],
+    },
+  },
+  spUserNameArea: {
+    flex: 1,
+    minWidth: 0,
+  },
+  spDocItem: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '10px 16px',
+    borderBottom: `1px solid ${grey[200]}`,
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    gap: 8,
+    '&:hover': {
+      backgroundColor: grey[50],
+    },
+  },
+  spDocDate: {
+    fontSize: '0.78rem',
+    color: grey[500],
+    marginLeft: 'auto',
+    flexShrink: 0,
+  },
 });
 
 const normalizeMonth = (value, fallback) => {
@@ -279,6 +334,7 @@ const PlanDateRangeNav = ({ dateAria, curMonth, onNavigate }) => {
 
 const PlanManegementMain = () => {
   const classes = useStyles();
+  const isMobile = useMediaQuery('(max-width:599px)');
   const history = useHistory();
   const users = useSelector(state => state.users);
   const service = useSelector(state => state.service);
@@ -313,6 +369,9 @@ const PlanManegementMain = () => {
   // ユーザーメニュー用の状態
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // スマホ用：選択中利用者（nullのとき利用者一覧を表示）
+  const [selectedMobileUser, setSelectedMobileUser] = useState(null);
 
   useEffect(() => {
     const handleMonthUpdate = (e) => {
@@ -441,11 +500,26 @@ const PlanManegementMain = () => {
 
   // アイテムクリックハンドラー
   const handleItemClick = (item) => {
-    
+
     // ローカルストレージにuidを保存
     setLS(planlsUid, item.uid);
-    
-    // アイテムタイプに応じてURLを決定
+
+    // スマホ時: 編集コンポーネントではなく対応するSheetコンポーネント（閲覧用）にリンク
+    if (isMobile) {
+      const sheetItems = [
+        'assessment', 'personalSupport', 'personalSupportHohou',
+        'senmonShien', 'conferenceNote',
+        'monitoring', 'monitoringHohou', 'monitoringSenmon',
+      ];
+      if (sheetItems.includes(item.item)) {
+        history.push(`/reports/usersplan?item=${item.item}&uid=${item.uid}&created=${item.created}`);
+        return;
+      }
+      // timetable はシートなし → スキップ
+      return;
+    }
+
+    // PC時: アイテムタイプに応じてURLを決定
     let url = '';
     switch (item.item) {
       case 'assessment':
@@ -478,7 +552,7 @@ const PlanManegementMain = () => {
       default:
         return; // その他のアイテムタイプは何もしない
     }
-    
+
     // 指定されたURLに移動
     history.push(url);
   };
@@ -509,6 +583,274 @@ const PlanManegementMain = () => {
     handleUserMenuClose();
   };
 
+  // ─── スマホ用共通パーツ（Menu / Dialog）─────────────────────────────────
+  const sharedMenuAndDialogs = (
+    <>
+      <Menu
+        anchorEl={userMenuAnchorEl}
+        keepMounted
+        open={Boolean(userMenuAnchorEl)}
+        onClose={handleUserMenuClose}
+        getContentAnchorEl={null}
+        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
+        transformOrigin={{ vertical: 'center', horizontal: 'left' }}
+      >
+        <div style={{
+          padding: '8px 16px',
+          borderBottom: '1px solid #e0e0e0',
+          backgroundColor: '#f5f5f5',
+          fontWeight: 'bold',
+          fontSize: '0.9rem',
+          color: '#333',
+          textAlign: 'center',
+        }}
+        dangerouslySetInnerHTML={{
+          __html: selectedUser ?
+            `${selectedUser.name.length > 16 ?
+              selectedUser.name.substring(0, 16) + '‥' :
+              selectedUser.name
+            }さん<br/>新規追加` :
+            '新規追加'
+        }}
+        />
+        <MenuItem onClick={() => handleNavigateToAdd('assessment')}>
+          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: cyan[800] }}>
+            <AssessmentIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="アセスメント" />
+        </MenuItem>
+        {(() => {
+          const userServices = selectedUser?.service?.split(',').map(s => s.trim()).filter(Boolean) || [];
+          const hasMultipleServices = userServices.length > 1;
+          if (userServices.length === 1 && userServices[0] === HOHOU) {
+            return (
+              <MenuItem onClick={() => handleNavigateToAdd('personalSupportHohou')}>
+                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: purple[800] }}>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="個別支援計画（保育所等訪問支援）" />
+              </MenuItem>
+            );
+          }
+          if (hasMultipleServices) {
+            return userServices.map((userService, index) => {
+              const isHohou = userService === HOHOU;
+              const planType = isHohou ? 'personalSupportHohou' : 'personalSupport';
+              const iconColor = isHohou ? purple[800] : brown[800];
+              const displayName = `個別支援計画（${shortWord(userService)}）`;
+              return (
+                <MenuItem key={index} onClick={() => handleNavigateToAdd(planType)}>
+                  <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: iconColor }}>
+                    <PersonIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary={displayName} />
+                </MenuItem>
+              );
+            });
+          } else {
+            return (
+              <MenuItem onClick={() => handleNavigateToAdd('personalSupport')}>
+                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: brown[800] }}>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="個別支援計画" />
+              </MenuItem>
+            );
+          }
+        })()}
+        <MenuItem onClick={() => handleNavigateToAdd('senmonShien')}>
+          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: orange[800] }}>
+            <BuildIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="専門支援計画" />
+        </MenuItem>
+        <MenuItem onClick={() => handleNavigateToAdd('conferenceNote')}>
+          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: lime[900] }}>
+            <MeetingRoomIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="担当者会議" />
+        </MenuItem>
+        <MenuItem onClick={() => handleNavigateToAdd('monitoring')}>
+          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: green[800] }}>
+            <TimelineIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="モニタリング" />
+        </MenuItem>
+        {(() => {
+          const userServices = selectedUser?.service?.split(',').map(s => s.trim()).filter(Boolean) || [];
+          const hasHohouService = userServices.includes(HOHOU);
+          if (hasHohouService) {
+            return (
+              <MenuItem onClick={() => handleNavigateToAdd('monitoringHohou')}>
+                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: green[800] }}>
+                  <TimelineIcon fontSize="small" style={{ borderLeft: `3px solid ${purple[400]}`, paddingLeft: 2 }} />
+                </ListItemIcon>
+                <ListItemText primary="モニタリング（保訪）" />
+              </MenuItem>
+            );
+          }
+          return null;
+        })()}
+        {(() => {
+          const hasSenmonShien = selectedUser && (planItems || []).some(
+            item => item.item === 'senmonShien' && String(item.uid) === String(selectedUser.uid)
+          );
+          if (hasSenmonShien) {
+            return (
+              <MenuItem onClick={() => handleNavigateToAdd('monitoringSenmon')}>
+                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: green[800] }}>
+                  <TimelineIcon fontSize="small" style={{ borderLeft: `3px solid ${orange[400]}`, paddingLeft: 2 }} />
+                </ListItemIcon>
+                <ListItemText primary="モニタリング（専門）" />
+              </MenuItem>
+            );
+          }
+          return null;
+        })()}
+      </Menu>
+
+      <SnackMsgSingle state={snack} setState={setSnack} />
+      <PlanOverlay open={loading} />
+
+      <Dialog
+        open={expiryDialogOpen}
+        onClose={() => setExpiryDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        style={{ zIndex: 50 }}
+        PaperProps={{ style: { alignSelf: 'flex-start', marginTop: 120, maxHeight: 'calc(100vh - 130px)' } }}
+      >
+        <DialogTitle disableTypography style={{ padding: '10px 16px', borderBottom: '1px solid #e0e0e0' }}>
+          <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>計画期限一覧</span>
+        </DialogTitle>
+        <DialogContent style={{ padding: '4px 16px 12px' }}>
+          {usersWithExpiry.map(user => (
+            <div key={user.uid} style={{ display: 'flex', alignItems: 'flex-start', padding: '6px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: '0.9rem' }}>{user.name}</div>
+                <div style={{ fontSize: '0.75rem' }}>
+                  {(expiryData.overdueByUid  || {})[user.uid]?.map((it, i) => (
+                    <div key={`o${i}`} style={{ color: red[500] }}>{it.itemName}：{it.endDate}（期限切れ）</div>
+                  ))}
+                  {(expiryData.currentByUid  || {})[user.uid]?.map((it, i) => (
+                    <div key={`c${i}`} style={{ color: red[500] }}>{it.itemName}：{it.endDate}（当月）</div>
+                  ))}
+                  {(expiryData.nextByUid     || {})[user.uid]?.map((it, i) => (
+                    <div key={`n${i}`} style={{ color: orange[500] }}>{it.itemName}：{it.endDate}（翌月）</div>
+                  ))}
+                </div>
+              </div>
+              <PlanUserExpiryBadge uid={user.uid} expiryData={expiryData} />
+              <span
+                style={{ cursor: 'pointer', marginLeft: 8, opacity: 0.4, color: grey[600] }}
+                onClick={(e) => handleUserNameClick(user, e)}
+              >
+                <AddCircleIcon fontSize="small" style={{ verticalAlign: 'middle' }} />
+              </span>
+            </div>
+          ))}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+
+  // ─── スマホ表示 ─────────────────────────────────────────────────────────────
+  if (isMobile) {
+    const userDocs = selectedMobileUser
+      ? (planItems || [])
+          .filter(item => String(item.uid) === String(selectedMobileUser.uid))
+          .sort((a, b) => new Date(b.created) - new Date(a.created))
+      : [];
+
+    return (
+      <>
+        <div className={classes.spWrapper}>
+
+          {/* ── 利用者一覧 ── */}
+          {!selectedMobileUser && (
+            <>
+              {/* 計画期限ボタン */}
+              {allExpiryUids.size > 0 && (
+                <div style={{ padding: '8px 16px', borderBottom: `1px solid ${grey[200]}` }}>
+                  <Button
+                    size="small"
+                    onClick={() => setExpiryDialogOpen(true)}
+                    style={{ color: expiryButtonColor, fontSize: '0.8rem' }}
+                  >
+                    計画期限
+                  </Button>
+                </div>
+              )}
+
+              {filteredUsers.map((user) => {
+                const docCount = (planItems || []).filter(item => String(item.uid) === String(user.uid)).length;
+                const ruStyle = recentUserStyle(user.uid);
+                return (
+                  <div
+                    key={user.uid}
+                    className={classes.spUserRow}
+                    style={ruStyle}
+                    onClick={() => setSelectedMobileUser(user)}
+                  >
+                    <div className={classes.spUserNameArea}>
+                      <DispNameWithAttr {...user} />
+                      <PlanUserExpiryBadge uid={user.uid} expiryData={expiryData} />
+                    </div>
+                    {docCount > 0 && (
+                      <span style={{ fontSize: '0.75rem', color: grey[500], marginRight: 8 }}>
+                        {docCount}件
+                      </span>
+                    )}
+                    <ChevronRightIcon style={{ color: grey[400] }} />
+                  </div>
+                );
+              })}
+            </>
+          )}
+
+          {/* ── 書類一覧（利用者選択後） ── */}
+          {selectedMobileUser && (
+            <>
+              <div className={classes.spSectionHeader}>
+                <IconButton size="small" onClick={() => setSelectedMobileUser(null)} style={{ marginLeft: -8 }}>
+                  <ChevronLeftIcon />
+                </IconButton>
+                <span style={{ fontWeight: 'bold', fontSize: '1rem', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedMobileUser.name}
+                </span>
+                <PlanUserExpiryBadge uid={selectedMobileUser.uid} expiryData={expiryData} />
+                <span
+                  style={{ cursor: 'pointer', opacity: 0.6, color: teal[700], marginLeft: 4 }}
+                  onClick={(e) => handleUserNameClick(selectedMobileUser, e)}
+                >
+                  <AddCircleIcon />
+                </span>
+              </div>
+
+              {userDocs.length === 0 && !loading && (
+                <div style={{ padding: 40, textAlign: 'center', color: grey[500], fontSize: '0.9rem' }}>
+                  書類がありません
+                </div>
+              )}
+
+              {userDocs.map((item, idx) => (
+                <div key={idx} className={classes.spDocItem} onClick={() => handleItemClick(item)}>
+                  <PlanItemBadge item={item} onClick={() => handleItemClick(item)} />
+                  <span className={classes.spDocDate}>{item.created?.slice(0, 7)}</span>
+                  <ChevronRightIcon style={{ color: grey[400], flexShrink: 0 }} />
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+
+        <PlanOutsideNotify />
+        {sharedMenuAndDialogs}
+      </>
+    );
+  }
+
+  // ─── PC表示 ──────────────────────────────────────────────────────────────
   return(
     <>
       <div className={classes.root}>
@@ -663,183 +1005,7 @@ const PlanManegementMain = () => {
       {/* 範囲外の日付通知 */}
       <PlanOutsideNotify />
 
-      {/* ユーザーメニュー */}
-
-      {/* ユーザーメニュー */}
-      <Menu
-        anchorEl={userMenuAnchorEl}
-        keepMounted
-        open={Boolean(userMenuAnchorEl)}
-        onClose={handleUserMenuClose}
-        getContentAnchorEl={null}
-        anchorOrigin={{ vertical: 'center', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'center', horizontal: 'left' }}
-      >
-        <div style={{ 
-          padding: '8px 16px', 
-          borderBottom: '1px solid #e0e0e0', 
-          backgroundColor: '#f5f5f5',
-          fontWeight: 'bold',
-          fontSize: '0.9rem',
-          color: '#333',
-          textAlign: 'center',
-        }}
-        dangerouslySetInnerHTML={{
-          __html: selectedUser ? 
-            `${selectedUser.name.length > 16 ? 
-              selectedUser.name.substring(0, 16) + '‥' : 
-              selectedUser.name
-            }さん<br/>新規追加` : 
-            '新規追加'
-        }}
-        />
-        <MenuItem onClick={() => handleNavigateToAdd('assessment')}>
-          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: cyan[800] }}>
-            <AssessmentIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="アセスメント" />
-        </MenuItem>
-        {(() => {
-          const userServices = selectedUser?.service?.split(',').map(s => s.trim()).filter(Boolean) || [];
-          const hasMultipleServices = userServices.length > 1;
-
-          if (userServices.length === 1 && userServices[0] === HOHOU) {
-            return (
-              <MenuItem onClick={() => handleNavigateToAdd('personalSupportHohou')}>
-                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: purple[800] }}>
-                  <PersonIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="個別支援計画（保育所等訪問支援）" />
-              </MenuItem>
-            );
-          }
-          
-          if (hasMultipleServices) {
-            // 複数サービスの場合は、各サービスごとに個別支援計画メニューを表示
-            return userServices.map((userService, index) => {
-              const isHohou = userService === HOHOU;
-              const planType = isHohou ? 'personalSupportHohou' : 'personalSupport';
-              const iconColor = isHohou ? purple[800] : brown[800];
-              const displayName = `個別支援計画（${shortWord(userService)}）`;
-
-              return (
-                <MenuItem key={index} onClick={() => handleNavigateToAdd(planType)}>
-                  <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: iconColor }}>
-                    <PersonIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary={displayName} />
-                </MenuItem>
-              );
-            });
-          } else {
-            // 単一サービス（HOHOU 以外）の場合は通常の個別支援計画メニューを表示
-            return (
-              <MenuItem onClick={() => handleNavigateToAdd('personalSupport')}>
-                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: brown[800] }}>
-                  <PersonIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText primary="個別支援計画" />
-              </MenuItem>
-            );
-          }
-        })()}
-
-
-
-        <MenuItem onClick={() => handleNavigateToAdd('senmonShien')}>
-          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: orange[800] }}>
-            <BuildIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="専門支援計画" />
-        </MenuItem>
-        <MenuItem onClick={() => handleNavigateToAdd('conferenceNote')}>
-          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: lime[900] }}>
-            <MeetingRoomIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="担当者会議" />
-        </MenuItem>
-        <MenuItem onClick={() => handleNavigateToAdd('monitoring')}>
-          <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: green[800] }}>
-            <TimelineIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary="モニタリング" />
-        </MenuItem>
-        {(() => {
-          const userServices = selectedUser?.service?.split(',').map(s => s.trim()).filter(Boolean) || [];
-          const hasHohouService = userServices.includes(HOHOU);
-          if (hasHohouService) {
-            return (
-              <MenuItem onClick={() => handleNavigateToAdd('monitoringHohou')}>
-                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: green[800] }}>
-                  <TimelineIcon fontSize="small" style={{ borderLeft: `3px solid ${purple[400]}`, paddingLeft: 2 }} />
-                </ListItemIcon>
-                <ListItemText primary="モニタリング（保訪）" />
-              </MenuItem>
-            );
-          }
-          return null;
-        })()}
-        {(() => {
-          const hasSenmonShien = selectedUser && (planItems || []).some(
-            item => item.item === 'senmonShien' && String(item.uid) === String(selectedUser.uid)
-          );
-          if (hasSenmonShien) {
-            return (
-              <MenuItem onClick={() => handleNavigateToAdd('monitoringSenmon')}>
-                <ListItemIcon style={{ minWidth: 28, marginRight: 8, color: green[800] }}>
-                  <TimelineIcon fontSize="small" style={{ borderLeft: `3px solid ${orange[400]}`, paddingLeft: 2 }} />
-                </ListItemIcon>
-                <ListItemText primary="モニタリング（専門）" />
-              </MenuItem>
-            );
-          }
-          return null;
-        })()}
-      </Menu>
-      
-      <SnackMsgSingle state={snack} setState={setSnack} />
-      <PlanOverlay open={loading} />
-
-      {/* 計画期限ダイアログ */}
-      <Dialog
-        open={expiryDialogOpen}
-        onClose={() => setExpiryDialogOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        style={{ zIndex: 50 }}
-        PaperProps={{ style: { alignSelf: 'flex-start', marginTop: 120, maxHeight: 'calc(100vh - 130px)' } }}
-      >
-        <DialogTitle disableTypography style={{ padding: '10px 16px', borderBottom: '1px solid #e0e0e0' }}>
-          <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>計画期限一覧</span>
-        </DialogTitle>
-        <DialogContent style={{ padding: '4px 16px 12px' }}>
-          {usersWithExpiry.map(user => (
-            <div key={user.uid} style={{ display: 'flex', alignItems: 'flex-start', padding: '6px 0', borderBottom: '1px solid #f0f0f0' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.9rem' }}>{user.name}</div>
-                <div style={{ fontSize: '0.75rem' }}>
-                  {(expiryData.overdueByUid  || {})[user.uid]?.map((it, i) => (
-                    <div key={`o${i}`} style={{ color: red[500] }}>{it.itemName}：{it.endDate}（期限切れ）</div>
-                  ))}
-                  {(expiryData.currentByUid  || {})[user.uid]?.map((it, i) => (
-                    <div key={`c${i}`} style={{ color: red[500] }}>{it.itemName}：{it.endDate}（当月）</div>
-                  ))}
-                  {(expiryData.nextByUid     || {})[user.uid]?.map((it, i) => (
-                    <div key={`n${i}`} style={{ color: orange[500] }}>{it.itemName}：{it.endDate}（翌月）</div>
-                  ))}
-                </div>
-              </div>
-              <PlanUserExpiryBadge uid={user.uid} expiryData={expiryData} />
-              <span
-                style={{ cursor: 'pointer', marginLeft: 8, opacity: 0.4, color: grey[600] }}
-                onClick={(e) => handleUserNameClick(user, e)}
-              >
-                <AddCircleIcon fontSize="small" style={{ verticalAlign: 'middle' }} />
-              </span>
-            </div>
-          ))}
-        </DialogContent>
-      </Dialog>
+      {sharedMenuAndDialogs}
     </>
   );
 };
@@ -847,6 +1013,7 @@ const PlanManegementMain = () => {
 const PlanManegement = () => {
   const allState = useSelector(state => state);
   const loadingStatus = getLodingStatus(allState);
+  const isMobile = useMediaQuery('(max-width:599px)');
 
   if(!loadingStatus.loaded) return(
     <>
@@ -861,7 +1028,7 @@ const PlanManegement = () => {
 
   return(
     <>
-      <LinksTab menu={planMenu} />
+      {!isMobile && <LinksTab menu={planMenu} />}
       <PlanManegementMain />
     </>
   );

@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core';
-import { blue, grey } from '@material-ui/core/colors';
+import { makeStyles, useMediaQuery } from '@material-ui/core';
+import { blue, grey, teal } from '@material-ui/core/colors';
 import React from 'react';
 import { processDeepBrToLf } from '../../../modules/newlineConv';
 import { safeBrtoLf } from '../../../modules/safeBrtoLf';
@@ -84,8 +84,76 @@ const useStyles = makeStyles({
       '& tbody': {
       }
     }
-  }
+  },
+
+  // ─── スマホ用スタイル ─────────────────────────────────────────────────────
+  spWrapper: {
+    fontFamily: 'inherit',
+    width: '100%',
+    maxWidth: '100vw',
+    overflowX: 'hidden',
+    boxSizing: 'border-box',
+  },
+  spHeader: { marginBottom: 12 },
+  spTitle: {
+    fontSize: '1.2rem',
+    fontWeight: 'bold',
+    wordBreak: 'break-all',
+    lineHeight: 1.4,
+    marginBottom: 2,
+  },
+  spCreateDate: { fontSize: '0.85rem', color: grey[600], marginBottom: 8 },
+  spLabel: {
+    backgroundColor: teal[50],
+    borderBottom: `1px solid ${teal[600]}`,
+    color: teal[900],
+    padding: '4px 8px',
+    fontSize: '0.85rem',
+    fontWeight: 'bold',
+    wordBreak: 'break-all',
+  },
+  spSectionLabel: {
+    backgroundColor: teal[100],
+    borderBottom: `2px solid ${teal[600]}`,
+    color: teal[900],
+    padding: '4px 8px',
+    fontSize: '0.9rem',
+    fontWeight: 'bold',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  spValue: {
+    padding: '6px 8px',
+    whiteSpace: 'pre-wrap',
+    lineHeight: 1.6,
+    minHeight: '1.6rem',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word',
+  },
+  spField: {
+    marginBottom: 8,
+    borderBottom: `1px solid ${grey[200]}`,
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  spGoalCard: {
+    border: `1px solid ${grey[200]}`,
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: 'hidden',
+  },
+  spGoalHeader: {
+    backgroundColor: teal[50],
+    borderBottom: `1px solid ${teal[200]}`,
+    padding: '4px 8px',
+    fontWeight: 'bold',
+    color: teal[800],
+    fontSize: '0.85rem',
+  },
+  spGoalBody: { padding: '6px 8px' },
 });
+
+// ─── PC用サブコンポーネント（git HEAD 完全復元） ───────────────────────────────
 
 // 100文字程度で改行を入れるヘルパー
 const wrapText = (text, maxLength = 100) => {
@@ -102,7 +170,7 @@ const wrapText = (text, maxLength = 100) => {
 const MainTable = ({user, content, useOriginalLabel}) => {
   const classes = useStyles();
   const [implYear, implMonth, implDate] = (content?.["アセスメント実施日"] ?? "").split("-");
-  
+
   // ラベル表示の決定
   const staffLabel = useOriginalLabel ? 'アセスメント実施者' : '面談実施者';
   const dateLabel = useOriginalLabel ? 'アセスメント実施日時' : '面談実施日時';
@@ -381,12 +449,178 @@ const HohouSupportTable = ({content}) => {
   )
 }
 
+// ─── スマホ用サブコンポーネント ───────────────────────────────────────────────
+const SpFieldBlock = ({ label, children, classes }) => (
+  <div className={classes.spField}>
+    <div className={classes.spLabel}>{label}</div>
+    <div className={classes.spValue}>{children}</div>
+  </div>
+);
+
+// ─── メインコンポーネント ────────────────────────────────────────────────────
 export const AssessmentSheet = (props) => {
   const classes = useStyles();
+  const isMobile = useMediaQuery('(max-width:599px)');
   const {user, content, created, useOriginalLabel = false} = props;
+  const [createdYear, createdMonth, createdDate] = created.split("-");
 
   const adjustedContent = processDeepBrToLf(content);
 
+  // ── スマホ表示 ─────────────────────────────────────────────────────────────
+  if (isMobile) {
+    const staffLabel = useOriginalLabel ? 'アセスメント実施者' : '面談実施者';
+    const dateLabel = useOriginalLabel ? 'アセスメント実施日時' : '面談実施日時';
+    const [implYear, implMonth, implDate] = (adjustedContent?.["アセスメント実施日"] ?? "").split("-");
+    const implDateStr = implYear && implMonth && implDate ? `${implYear}年${implMonth}月${implDate}日` : "";
+    const timeStr = (adjustedContent["開始時間"] || adjustedContent["終了時間"])
+      ? `　${adjustedContent["開始時間"]}〜${adjustedContent["終了時間"]}`
+      : "";
+
+    const lifeWorks = (adjustedContent["生活歴"] ?? []).filter(dt => dt["項目"] || dt["内容"]);
+
+    // 五領域チェック項目（データがある領域のみ）
+    const fiveDomainEntries = Object.entries(FIVEDOMAINS_CLASS).filter(([, labels]) =>
+      labels.some(label => adjustedContent[label])
+    );
+
+    // 全般項目
+    const generalEntries = GENERAL_LABELS.filter(label => adjustedContent[label]);
+
+    // 保育所等訪問支援
+    const hohouLabels = ['訪問先種別','在籍区分','主な支援場面','時間割/日課の要点','合理的配慮/環境調整案','訪問頻度','直接と間接の配分'];
+    const hohouEntries = hohouLabels.filter(label => adjustedContent[label]);
+
+    const hasDoctorInfo = adjustedContent["病院名"] || adjustedContent["医師名"] || adjustedContent["病院連絡先"];
+
+    return (
+      <div className={classes.spWrapper}>
+        <div className={classes.spHeader}>
+          <div className={classes.spTitle}>{user.name}さんのアセスメントシート</div>
+          <div className={classes.spCreateDate}>作成日：{createdYear}年{createdMonth}月{createdDate}日</div>
+        </div>
+
+        <SpFieldBlock label={staffLabel} classes={classes}>
+          {adjustedContent["アセスメント実施者"]}
+        </SpFieldBlock>
+        <SpFieldBlock label={dateLabel} classes={classes}>
+          {implDateStr}{timeStr}
+        </SpFieldBlock>
+        {adjustedContent['相談支援事業所'] && (
+          <SpFieldBlock label="相談支援事業所名" classes={classes}>
+            {adjustedContent['相談支援事業所']}
+          </SpFieldBlock>
+        )}
+        <SpFieldBlock label="性別" classes={classes}>{adjustedContent["性別"]}</SpFieldBlock>
+        <SpFieldBlock label="電話番号" classes={classes}>{user.pphone}</SpFieldBlock>
+        <SpFieldBlock label="保護者名" classes={classes}>
+          {user.pname}
+          {adjustedContent["保護者続柄"] ? `(${adjustedContent["保護者続柄"]})` : ""}
+          {adjustedContent["実施対象者"] && (
+            `\n実施対象者：${adjustedContent["実施対象者"]}${adjustedContent["対象者続柄"] ? `(${adjustedContent["対象者続柄"]})` : ""}`
+          )}
+        </SpFieldBlock>
+        {adjustedContent["家族構成"] && (
+          <SpFieldBlock label="家族構成" classes={classes}>{adjustedContent["家族構成"]}</SpFieldBlock>
+        )}
+        <SpFieldBlock label="アレルギー" classes={classes}>{adjustedContent["アレルギー"] || "なし"}</SpFieldBlock>
+        {adjustedContent["症状"] && (
+          <SpFieldBlock label="症状" classes={classes}>{adjustedContent["症状"]}</SpFieldBlock>
+        )}
+        {adjustedContent["得意"] && (
+          <SpFieldBlock label="得意なこと・好きなこと" classes={classes}>{adjustedContent["得意"]}</SpFieldBlock>
+        )}
+        {adjustedContent["注意事項"] && (
+          <SpFieldBlock label="気をつけてほしいこと" classes={classes}>{safeBrtoLf(adjustedContent["注意事項"])}</SpFieldBlock>
+        )}
+        {adjustedContent["本人意向"] && (
+          <SpFieldBlock label="本人意向" classes={classes}>{safeBrtoLf(adjustedContent["本人意向"])}</SpFieldBlock>
+        )}
+        {adjustedContent["家族意向"] && (
+          <SpFieldBlock label="家族意向" classes={classes}>{safeBrtoLf(adjustedContent["家族意向"])}</SpFieldBlock>
+        )}
+
+        {hasDoctorInfo && (
+          <>
+            <div className={classes.spSectionLabel}>かかりつけ医</div>
+            {adjustedContent["病院名"] && (
+              <SpFieldBlock label="病院名" classes={classes}>{adjustedContent["病院名"]}</SpFieldBlock>
+            )}
+            {(adjustedContent["医師名"] || adjustedContent["病院連絡先"]) && (
+              <SpFieldBlock label="医師名" classes={classes}>
+                {adjustedContent["医師名"]}（{adjustedContent["病院連絡先"]}）
+              </SpFieldBlock>
+            )}
+          </>
+        )}
+
+        {fiveDomainEntries.length > 0 && (
+          <>
+            <div className={classes.spSectionLabel}>五領域支援チェック項目</div>
+            {fiveDomainEntries.map(([domain, labels]) => {
+              const checkedItems = labels.filter(l => adjustedContent[l]);
+              if (!checkedItems.length) return null;
+              return (
+                <div key={domain} className={classes.spGoalCard}>
+                  <div className={classes.spGoalHeader}>{domain}</div>
+                  <div className={classes.spGoalBody}>
+                    {checkedItems.map(label => (
+                      <div key={label} style={{ fontSize: '0.85rem', lineHeight: 1.6 }}>
+                        {label}：{adjustedContent[label]}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {lifeWorks.length > 0 && (
+          <>
+            <div className={classes.spSectionLabel}>生活歴</div>
+            {lifeWorks.map((dt, idx) => (
+              <div key={idx} className={classes.spGoalCard}>
+                <div className={classes.spGoalHeader}>{safeBrtoLf(dt["項目"]) || `項目${idx + 1}`}</div>
+                <div className={classes.spGoalBody} style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                  {safeBrtoLf(dt["内容"])}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {hohouEntries.length > 0 && (
+          <>
+            <div className={classes.spSectionLabel}>保育所等訪問支援用</div>
+            {hohouEntries.map(label => {
+              const labelDisplay = inputDefinitions.find(def => def.label === label)?.longLabel || label;
+              return (
+                <SpFieldBlock key={label} label={labelDisplay} classes={classes}>
+                  {safeBrtoLf(adjustedContent[label])}
+                </SpFieldBlock>
+              );
+            })}
+          </>
+        )}
+
+        {generalEntries.length > 0 && (
+          <>
+            <div className={classes.spSectionLabel}>全般</div>
+            {generalEntries.map(label => {
+              const question = inputDefinitions.find(def => def.label === label)?.question;
+              return (
+                <SpFieldBlock key={label} label={question ?? label} classes={classes}>
+                  {safeBrtoLf(adjustedContent[label])}
+                </SpFieldBlock>
+              );
+            })}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ── PC表示（git HEAD 完全復元） ───────────────────────────────────────────
   return(
     <div className={classes.sheetWrapper}>
       <SheetHeader user={user} created={created} title="アセスメントシート" />

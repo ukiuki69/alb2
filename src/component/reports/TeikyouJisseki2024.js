@@ -623,7 +623,7 @@ export const getTeikyouJissekiSchedule = (scheudle, com, service, users, stdDate
     const user = users.find(prevUser => "UID"+prevUser.uid === uidStr);
     const newSch = Object.entries(sch).filter(([did, schDt={}]) => {
       // keyがDyyyymmdd形式でないデータは無視
-      if(!/^D[0-9]{8}/.test(did)) return false;
+      if(!/^D[0-9]{8}H?$/.test(did)) return false;
       // 予約データは無視
       if(schDt.reserve) return false;
       const onItems = items.some(item => {
@@ -976,7 +976,7 @@ const MainTable = (props) => {
   }, []);
 
   const schCnt = Object.keys(sch).reduce((prevCnt, did) => {
-    if(!/^D\d{8}/.test(did)) return prevCnt;
+    if(!/^D\d{8}H?$/.test(did)) return prevCnt;
     const schDt = sch[did] ?? {};
     const hasDisplayItem = items.some(item => {
       const elementDt = getKasanElementDt({tableType: 'body', item, schDt, user, com, stdDate, dDate: did});
@@ -1004,7 +1004,9 @@ const MainTable = (props) => {
     }else{
       dDate = dDates[i];
     }
-    const schDt = service===HOHOU ?sch[dDate+"H"] ?? sch[dDate] ?? {} :sch[dDate] ?? {};
+    const schDt = service===HOHOU
+      ? sch[dDate+"H"] ?? (sch[dDate]?.service === HOHOU ? sch[dDate] : {})
+      : sch[dDate] ?? {};
     const schService = schDt.service;
     if(schService && service && schService !== service){
       if(!(service==="保育所等訪問支援" && schDt?.dAddiction?.["保育訪問"])){
@@ -1144,7 +1146,7 @@ const Sheet = (props) => {
 
   const dDates = Object.keys(sch).filter(dDate => {
     // keyがDyyyymmdd形式でないデータは無視
-    if(!/^D[0-9]{8}/.test(dDate)) return false;
+    if(!/^D[0-9]{8}H?$/.test(dDate)) return false;
     const schDt = sch[dDate] ?? {};
     // 予約データは無視
     if(schDt.reserve) return false;
