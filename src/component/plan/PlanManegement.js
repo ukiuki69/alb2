@@ -10,6 +10,7 @@ import { teal, blue, brown, orange, yellow, cyan, green, lime, purple, grey, red
 import { Button, colors, makeStyles, Menu, MenuItem, ListItemIcon, ListItemText, Dialog, DialogTitle, DialogContent, Tooltip, IconButton, useMediaQuery } from '@material-ui/core';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import CloseIcon from '@material-ui/icons/Close';
 import SnackMsgSingle from '../common/SnackMsgSingle';
 import { useHistory } from 'react-router-dom';
 import { getLS, setLS } from '../../modules/localStrageOprations';
@@ -17,6 +18,8 @@ import { planlsUid } from './planConstants';
 import { getPlanItemAttr, PlanItemBadge, comparePlanItems, PlanUserExpiryBadge } from './PlanItemShared';
 import { usePlanExpiry } from './usePlanExpiry';
 import { hideSideToolBar, showSideToolBar } from '../../modules/uiEvents';
+import { permissionIsDev } from '../../modules/permissionCheck';
+import { useGetHeaderHeight } from '../common/Header';
 import PlanOutsideNotify from './PlanOutsideNotify';
 import { DispNameWithAttr } from '../Users/Users';
 import AssessmentIcon from '@material-ui/icons/Assessment';
@@ -335,6 +338,7 @@ const PlanDateRangeNav = ({ dateAria, curMonth, onNavigate }) => {
 const PlanManegementMain = () => {
   const classes = useStyles();
   const isMobile = useMediaQuery('(max-width:599px)');
+  const headerHeight = useGetHeaderHeight();
   const history = useHistory();
   const users = useSelector(state => state.users);
   const service = useSelector(state => state.service);
@@ -718,17 +722,29 @@ const PlanManegementMain = () => {
         maxWidth="xs"
         fullWidth
         style={{ zIndex: 50 }}
-        PaperProps={{ style: { alignSelf: 'flex-start', marginTop: 120, maxHeight: 'calc(100vh - 130px)' } }}
+        PaperProps={{ style: { alignSelf: 'flex-start', marginTop: 120, maxHeight: 'calc(100vh - 130px)', overflow: 'visible', position: 'relative' } }}
       >
+        {/* 閉じるボタン（右上端から50%はみ出し） */}
+        <IconButton
+          size="small"
+          onClick={() => setExpiryDialogOpen(false)}
+          style={{
+            position: 'absolute', top: -14, right: -14,
+            width: 32, height: 32,
+            backgroundColor: teal[500], color: '#fff', zIndex: 1,
+          }}
+        >
+          <CloseIcon style={{ fontSize: 16 }} />
+        </IconButton>
         <DialogTitle disableTypography style={{ padding: '10px 16px', borderBottom: '1px solid #e0e0e0' }}>
-          <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>計画期限一覧</span>
+          <span style={{ fontWeight: 'bold', fontSize: '1.2rem' }}>計画期限一覧</span>
         </DialogTitle>
-        <DialogContent style={{ padding: '4px 16px 12px' }}>
+        <DialogContent style={{ padding: '4px 16px 12px', overflowY: 'auto' }}>
           {usersWithExpiry.map(user => (
-            <div key={user.uid} style={{ display: 'flex', alignItems: 'flex-start', padding: '6px 0', borderBottom: '1px solid #f0f0f0' }}>
+            <div key={user.uid} style={{ display: 'flex', alignItems: 'flex-start', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: '0.9rem' }}>{user.name}</div>
-                <div style={{ fontSize: '0.75rem' }}>
+                <div style={{ fontSize: 16, }}>{user.name}</div>
+                <div style={{ fontSize: 13, marginTop: 2 }}>
                   {(expiryData.overdueByUid  || {})[user.uid]?.map((it, i) => (
                     <div key={`o${i}`} style={{ color: red[500] }}>{it.itemName}：{it.endDate}（期限切れ）</div>
                   ))}
@@ -764,7 +780,7 @@ const PlanManegementMain = () => {
 
     return (
       <>
-        <div className={classes.spWrapper}>
+        <div className={classes.spWrapper} style={headerHeight ? { marginTop: headerHeight } : undefined}>
 
           {/* ── 利用者一覧 ── */}
           {!selectedMobileUser && (
@@ -811,7 +827,7 @@ const PlanManegementMain = () => {
           {/* ── 書類一覧（利用者選択後） ── */}
           {selectedMobileUser && (
             <>
-              <div className={classes.spSectionHeader}>
+              <div className={classes.spSectionHeader} style={headerHeight ? { top: headerHeight } : undefined}>
                 <IconButton size="small" onClick={() => setSelectedMobileUser(null)} style={{ marginLeft: -8 }}>
                   <ChevronLeftIcon />
                 </IconButton>
@@ -834,11 +850,13 @@ const PlanManegementMain = () => {
               )}
 
               {userDocs.map((item, idx) => (
-                <div key={idx} className={classes.spDocItem} onClick={() => handleItemClick(item)}>
-                  <PlanItemBadge item={item} onClick={() => handleItemClick(item)} />
-                  <span className={classes.spDocDate}>{item.created?.slice(0, 7)}</span>
-                  <ChevronRightIcon style={{ color: grey[400], flexShrink: 0 }} />
-                </div>
+                <PlanItemBadge
+                  key={idx}
+                  item={item}
+                  showFullDate
+                  onClick={() => handleItemClick(item)}
+                  style={{ width: 200, padding: '10px 14px', margin: '4px 8px' }}
+                />
               ))}
             </>
           )}
@@ -862,8 +880,9 @@ const PlanManegementMain = () => {
               {allExpiryUids.size > 0 && (
                 <Button
                   size="small"
+                  variant="contained"
                   onClick={() => setExpiryDialogOpen(true)}
-                  style={{ fontSize: '0.65rem', minWidth: 'auto', padding: '1px 5px', lineHeight: 1.4, color: expiryButtonColor }}
+                  style={{ fontSize: '0.65rem', minWidth: 'auto', padding: '1px 5px', lineHeight: 1.4, backgroundColor: red[500], color: '#fff' }}
                 >
                   計画期限
                 </Button>
@@ -1025,6 +1044,8 @@ const PlanManegement = () => {
       <LoadErr loadStatus={loadingStatus} errorId={'E923556'} />
     </>)
   }
+
+  if (isMobile && !permissionIsDev(allState.account)) return null;
 
   return(
     <>

@@ -39,6 +39,7 @@ export const usePlanExpiry = () => {
 
   useEffect(() => {
     if (!hid || !bid || !stdDate) return;
+    let isMounted = true;
     const stdYM = stdDate.slice(0, 7);
     const nextD = new Date(stdDate);
     nextD.setMonth(nextD.getMonth() + 1);
@@ -49,7 +50,7 @@ export const usePlanExpiry = () => {
         const res = await univApiCall(
           { a: 'fetchUsersPlan', hid, bid, lastmonth: stdYM }, 'E_EXPIRY01', ''
         );
-        if (!res?.data?.result) return;
+        if (!isMounted || !res?.data?.result) return;
 
         const currentMonth=[], nextMonth=[], overdue=[];
         const currentByUid={}, nextByUid={}, overdueByUid={};
@@ -94,11 +95,14 @@ export const usePlanExpiry = () => {
             }
           });
 
-        setData({ currentMonth, nextMonth, overdue, currentByUid, nextByUid, overdueByUid });
+        if (isMounted) {
+          setData({ currentMonth, nextMonth, overdue, currentByUid, nextByUid, overdueByUid });
+        }
       } catch (err) {
         console.error('usePlanExpiry error:', err);
       }
     })();
+    return () => { isMounted = false; };
   }, [hid, bid, stdDate]);
 
   return data;

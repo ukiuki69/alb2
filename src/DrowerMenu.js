@@ -162,20 +162,22 @@ const useStyles = makeStyles({
 
 const PlanMenuIcon = () => {
   const expiryData = usePlanExpiry();
+  const over = expiryData.overdue.length;
   const cur  = expiryData.currentMonth.length;
   const next = expiryData.nextMonth.length;
   let color;
-  if (cur  > 0) color = red[500];
+  if (over > 0 || cur > 0) color = red[500];
   else if (next > 0) color = orange[500];
 
   const icon = (
     <FontAwesomeIcon icon={faUserEdit}
       style={{ ...iconStyle, ...(color ? { color } : {}) }} />
   );
-  if (!cur && !next) return icon;
+  if (!over && !cur && !next) return icon;
   return (
     <Tooltip placement="right" title={
       <div>
+        {over > 0 && <div>期限切れ {over}件</div>}
         {cur  > 0 && <div>当月期限 {cur}件</div>}
         {next > 0 && <div>翌月期限 {next}件</div>}
       </div>
