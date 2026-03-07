@@ -4143,7 +4143,7 @@ const billingCsvK122_2 = (outputRec, masterRec, dt, thisUser) => {
   const mltSvcObj = isMltSvc? thisUser.etc.multiSvc: {};
   ary.forEach(e => {
     const svc = getSvcNameByCd(e);
-    // console.log('k122_2', svc, e, dt, thisUser);
+    console.log('k122_2', svc, e, dt, thisUser);
     let startDate = isMltSvc? mltSvcObj[svc].startDate: dt.startDate;
     startDate = startDate.replace(/\-/g, '');
     let contractEnd = isMltSvc? mltSvcObj[svc].contractEnd: thisUser.contractEnd;

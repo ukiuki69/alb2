@@ -233,7 +233,7 @@ const UsersTransfer = () => {
         }
         // 送信: univApiCall を使用（dispatch(Actions.updateUser) は使わない）
         const res = await univApiCall({ a: 'sendUserWithEtc', ...escapeSqlQuotes(sendData) });
-        if (!res?.data?.result) throw new Error('移管に失敗しました: ' + u.hno);
+        if (!res?.data?.result) throw new Error('コピーに失敗しました: ' + u.hno);
       }
       // 送信完了後: Actions.listUsers でDBから最新の users を取得
       const prms = { a: 'lu', hid, bid, date: stdDate };
@@ -274,7 +274,8 @@ const UsersTransfer = () => {
     <div>
       <LinksTab menu={usersMenu} />
       <div className={classes.root}>
-        <div className={classes.title}>他事業所からのユーザー移管</div>
+        <div className={classes.title}>他事業所への利用者コピー
+        </div>
         {isNoDisplayOnly ? (
           <div className={classes.noData}>表示するデータがありません</div>
         ) : (
@@ -286,7 +287,7 @@ const UsersTransfer = () => {
               </div>
             )}
             {!loading && otherOfficeUsers.length === 0 && (
-              <div className={classes.noData}>移管可能なユーザーはいません。</div>
+              <div className={classes.noData}>コピー可能なユーザーはいません。</div>
             )}
             {!loading && otherOfficeUsers.length > 0 && (
               <table className={classes.table}>
@@ -355,14 +356,14 @@ const UsersTransfer = () => {
             disabled={checkedUsers.length === 0 || transferring || loading}
             onClick={() => setConfirmOpen(true)}
           >
-            移管実行
+            コピー実行
           </Button>
         </div>
       )}
 
       {!isNoDisplayOnly && (
         <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth='xs'>
-          <DialogTitle>移管の確認</DialogTitle>
+          <DialogTitle>コピーの確認</DialogTitle>
           <DialogContent>
             <DialogContentText>
               {checkedUsers.length}人のユーザーは当月付にて移管します、よろしいですか？

@@ -97,6 +97,7 @@ import FileUploadPage from './component/common/FileUploadPage';
 import SchUserActualCostList from './component/schedule/SchUserActualCostList';
 import { KEIKAKU_SOUDAN, SYOUGAI_SOUDAN } from './modules/contants';
 import UsersTransfer from './component/Users/UsersTransfer';
+import GradeAdvanceHandlerGate from './component/Users/GradeAdvanceHandler';
 
 const Billing = React.lazy(() => import('./component/Billing/Billing'));
 const BilUserBilling = React.lazy(() =>
@@ -352,6 +353,7 @@ class Main extends React.Component{
           </Switch>
         </HashRouter>
         <SnackMsg storeStateOpen={true} />
+        <GradeAdvanceHandlerGate />
       </Provider>
     )
   }

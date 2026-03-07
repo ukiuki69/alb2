@@ -327,7 +327,7 @@ export const HnoTextField = ({
     setLocalVal('');
     setLockedAsProvisional(false);
     onChange('hno', '');
-    onBlur('hno', { error: true, helperText: '仮登録は未入力', value: '' });
+    onBlur('hno', { error: true, helperText: '仮設定はボタンで設定', value: '' });
     if (onResetProvisional) onResetProvisional();
   };
 
@@ -341,7 +341,7 @@ export const HnoTextField = ({
         onChange={e => { if (!isDisabled) { setLocalVal(e.target.value); } }}
         onBlur={handleBlur}
         error={isDisabled ? false : (error?.error || false)}
-        helperText={isDisabled ? '仮設定中' : (error?.helperText || '仮登録は未入力')}
+        helperText={isDisabled ? '仮設定中' : (error?.helperText || '仮設定はボタンで設定')}
         className={classes.tfMiddle}
         style={{ marginTop: 8 }}
       />

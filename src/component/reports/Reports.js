@@ -2498,7 +2498,9 @@ const Reports = () => {
           >
             ← 戻る
           </Button>
-          <ReportsMain />
+          <div style={{ padding: '0 4px' }}>
+            <ReportsMain />
+          </div>
         </>
       );
     }
