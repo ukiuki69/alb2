@@ -6,6 +6,25 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3439 2026/03/07
+### 変更ファイル
+- src/DrowerMenu.js
+- src/component/plan/PlanManegement.js
+- src/component/plan/usePlanExpiry.js
+
+### 主な変更内容
+1. 計画期限アイコン修正: 期限切れ（overdue）書類がある場合もサイドバーアイコンが赤くなるよう修正・ツールチップに「期限切れ N件」追加
+2. 計画期限ダイアログ改善: 利用者氏名16px・詳細13pxに拡大、右上に緑丸×閉じるボタン追加（50%はみ出し）
+3. Warning修正: Button `color="error"`（MUI v4非対応）を削除、usePlanExpiry に isMounted ガード追加
+
+### 取り込まれたdev側の変更（3438）
+1. PlanManegement スマホ対応: 利用者一覧→書類一覧の2段階表示、*Sheet コンポーネントへ遷移
+2. Reports.js スマホ対応: モバイル時に printPreview/printCntRoot 除去・Sheet のみ表示
+3. UserEdit2026: 保存ボタン下マージン60px・加算設定/兄弟追加ボタン廃止・multiService初期値修正
+4. UsersTransfer ソート修正: selectedOrder.order 設定あり→sortUsersAsync、なし→sindex最大値+10刻み付与
+5. Sheets スマホ対応: PersonalSupport/Assessment/Monitoring/ConferenceNote/SenmonShien/PersonalSupportHohou 各Sheetにモバイル表示実装
+6. DomainBadges 新規追加: 五領域バッジコンポーネントを共通化
+
 ## rev.3437 2026/03/03
 ### 変更ファイル
 - component/Users/UserEdit2026.js
