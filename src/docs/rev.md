@@ -6,6 +6,35 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3440 2026/03/07
+### 変更ファイル
+- .gitignore
+- package.json
+- scripts/log-server.js（新規）
+- src/App.js
+- src/component/Users/GradeAdvanceHandler.js（新規）
+- src/component/Users/UsersTransfer.js
+- src/component/Users/Users.js
+- src/component/Users/UserEdit2026Parts.js
+- src/component/Users/utils/userEditValidation.js
+- src/component/common/ConfirmPayment.js
+- src/component/common/StdFormParts.js
+- src/component/plan/PlanItemShared.js
+- src/component/reports/Reports.js
+- src/index.js
+
+### 主な変更内容
+1. 開発環境ログサーバー: index.js で console.log/warn/error をローカルサーバー(port 3099)に転送、`npm run dev` スクリプト追加
+2. GradeAdvanceHandler 新規追加: 04-01時に児童発達支援→放課後等デイサービス切替ダイアログを表示するコンポーネント、App.js に登録
+3. UsersTransfer: 「移管」→「コピー」へ文言変更、タイポ修正
+4. 仮設定ボタン案内文言統一: UserEdit2026Parts / StdFormParts / userEditValidation のエラーメッセージを「仮設定はボタンで設定」に統一
+5. ConfirmPayment: 電話番号更新
+6. PlanItemShared: PlanItemBadge に showFullDate prop 追加
+7. Reports.js: スマホSheetビュー表示時に padding 4px 追加
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3439 2026/03/07
 ### 変更ファイル
 - src/DrowerMenu.js
