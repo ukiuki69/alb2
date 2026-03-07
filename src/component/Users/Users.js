@@ -627,7 +627,7 @@ export const usersMenu = [
   { link: "/users/timetable/", label: "計画支援時間" },
 ]
 export const usersExtMenu = [
-  { link: "/users/transfer", label: "ユーザー移管" },
+  { link: "/users/transfer", label: "他事業所への利用者コピー" },
 ]
 
 if (seagull) {
@@ -1413,7 +1413,7 @@ const UsersMain = () => {
     <LinksTab menu={usersMenu} extMenu={usersExtMenu} />
     <div className='AppPage userLst fixed'>
       <DisplayInfoOnPrint />
-      <UserListTitle 
+      <UserListTitle
         classroomCnt={classroomCnt} brosCnt={brosCnt} dispContractEnd={dispContractEnd}
         uprms={uprms}
       />

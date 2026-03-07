@@ -1706,7 +1706,7 @@ export const HihokenNo = (props) => {
   const users = useSelector(state => state.users);
   const [val, setval] = useState(def_);
   const [err, seterr] = useState(false);
-  const [errMsg, seterrMsg] = useState('仮登録は数字3桁');
+  const [errMsg, seterrMsg] = useState('仮設定はボタン設定');
   const [isProvisional, setIsProvisional] = useState(false);
   // 3桁ロックはblurで確定させる（入力中は判定しない）
   const [lockedAsProvisional, setLockedAsProvisional] = useState(
@@ -1759,7 +1759,7 @@ export const HihokenNo = (props) => {
     }
     else if (han.length === 3) {
       seterr(true);
-      seterrMsg('3桁は仮設定ボタン');
+      seterrMsg('仮設定はボタン利用');
       setval('');
     }
     else {
@@ -1788,7 +1788,7 @@ export const HihokenNo = (props) => {
     setIsProvisional(false);
     setLockedAsProvisional(false);
     seterr(true);
-    seterrMsg('仮登録は数字3桁');
+    seterrMsg('仮設定はボタンで設定');
   };
 
   return (

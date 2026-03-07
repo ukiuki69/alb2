@@ -79,7 +79,7 @@ const ConfirmPayment = () => {
   const Renraku = () => (
     <div className={classes.renrakuRoot}>
       <div className='tel'>
-        電話: 050-3187-8731
+        電話: 050-1792-2282
       </div>
       <div>
         <a href='mailto:info@rbatosmail.com'>

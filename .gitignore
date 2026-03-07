@@ -17,6 +17,7 @@ precache-manifest.*.js
 
 # Test data (real data, not for version control)
 src/testData/
+src/rules/
 
 # Misc
 deploylog.txt

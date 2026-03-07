@@ -132,25 +132,28 @@ const useStyles = makeStyles({
   },
 });
 
-export const PlanItemBadge = ({ item, onClick, style }) => {
+export const PlanItemBadge = ({ item, onClick, style, showFullDate }) => {
   const classes = useStyles();
   const attr = (item && item.name && item.short && item.color)
     ? { name: item.name, short: item.short, color: item.color, textColor: item.textColor, borderLeft: item.borderLeft }
     : getPlanItemAttr(item);
-  
+  const dateStr = showFullDate
+    ? (item.created || '').slice(0, 10)
+    : (item.created || '').slice(5);
+
   return (
     <div
       onClick={onClick}
       className={classes.badge}
-      style={{ 
-        backgroundColor: attr.color, 
+      style={{
+        backgroundColor: attr.color,
         color: attr.textColor || '#eee',
         borderLeft: attr.borderLeft || 'none',
-        ...style 
+        ...style
       }}
     >
       <span style={{ marginInlineStart: attr.borderLeft ? '-6px' : '0px' }}>
-        {attr.short} : {item.created.slice(5)}
+        {attr.short} : {dateStr}
       </span>
     </div>
   );

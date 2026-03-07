@@ -93,7 +93,7 @@ export const validateHno = (value, { users = [], uid } = {}) => {
   }
   // 3桁の手入力禁止（仮設定ボタン経由のみ許可）
   if (han.length === 3) {
-    return { value: '', error: true, helperText: '3桁は仮設定ボタン' };
+    return { value: '', error: true, helperText: '仮設定はボタンで設定' };
   }
   if (existHno) {
     return { value: han, error: true, helperText: '受給者証番号重複' };
