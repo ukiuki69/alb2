@@ -5,7 +5,7 @@ import * as comMod from '../../commonModule';
 import * as Actions from '../../Actions';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
-import { blue, grey, indigo, orange, red, teal, yellow } from '@material-ui/core/colors';
+import { indigo, orange, purple, red, teal, yellow, grey, blue } from '@material-ui/core/colors';
 import {
   Checkbox, FormControlLabel, Menu, MenuItem,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, IconButton, Switch,
@@ -26,11 +26,16 @@ import SchLokedDisplay from '../common/SchLockedDisplay';
 import { GetNextHist } from './Users';
 import { NextUserDisp } from './UserEditNoDialog';
 import { UnivCheckbox } from '../common/univFormParts';
-import { llmApiCall } from '../../modules/llmApiCall';
-import { forbiddenPtn } from '../common/StdFormParts';
 
 import { buildInitialFormValues } from './utils/userEditDefaults';
 import { submitUserEdit } from './utils/userEditSubmit';
+import {
+  UPPER_LIMIT_TYPES, createOfficeRow, getInitialUpperLimitEtc, collectOfficeCandidates,
+  resolveUpperLimitRole, getUpperLimitButtonLabel, getUpperLimitTextColor,
+  getUpperLimitDisplayList, createUpperLimitRowError, buildUnsavedSnapshot,
+  validateUpperLimitDialogRows, normalizeUpperLimitEtcForSnapshot,
+} from './utils/upperLimitUtils';
+import useKanaInput from './hooks/useKanaInput';
 import { UserEditDialogs } from './UserEdit2026Dialogs';
 import {
   NameTextField, DateTextField, PhoneTextField, NumericTextField,
@@ -38,11 +43,10 @@ import {
   ContractLineNoTextField, ServiceSelect, UserTypeSelect,
   IryouCareSelect, BrosIndexSelect, Over18Select,
   ScitySelect, BelongsAutocomplete, ClassRoomAutocomplete,
-  MultiServiceCheckboxes, DokujiJougenTextField,
+  MultiServiceCheckboxes, DokujiJougenTextField, AddictionDateField,
 } from './UserEdit2026Parts';
-import { getAddictionVisibility } from '../../modules/addictionUtils';
+import { getAddictionVisibility, ADDICTION_ITEMS, ADDICTION_RESTRICTED_KEYS } from '../../modules/addictionUtils';
 import { getAddictionOption } from '../common/AddictionFormPartsCommon';
-import { validateDate } from './utils/userEditValidation';
 import Select from '@material-ui/core/Select';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
@@ -194,215 +198,7 @@ const useStyles = makeStyles({
   },
 });
 
-const createOfficeRow = (src = {}) => ({
-  name: src?.name || '',
-  no: src?.no || '',
-  kanriKekka: src?.kanriKekka || '',
-  kettei: src?.kettei || '',
-  noDisabled: true,
-});
-
-const UPPER_LIMIT_TYPES = {
-  KANRI: '管理事業所',
-  KYOURYOKU: '協力事業所',
-};
 const EMPTY_USER = {};
-
-const ADDICTION_ITEMS = [
-  '個別サポート加算１', '個別サポート加算２', '個別サポート加算３',
-  '医療的ケア児支援加算', '医療連携体制加算',
-  '強度行動障害児支援加算', '強度行動障害児支援加算９０日以内',
-  '人工内耳装用児支援加算', '食事提供加算', '視覚聴覚言語機能障害児支援加算',
-  '送迎加算設定', '通所自立支援加算', '児童発達支援無償化',
-  '福祉専門職員配置等加算', '児童指導員等加配加算', '看護職員加配加算',
-  '専門的支援加算', '多子軽減措置', '通所支援計画未作成減算',
-  '児童発達支援管理責任者欠如減算', '送迎加算Ⅰ一定条件',
-  '特別支援加算', 'ケアニーズ対応加算',
-  '中核機能強化加算', '中核機能強化事業所加算',
-];
-
-const ADDICTION_RESTRICTED_KEYS = [
-  '福祉専門職員配置等加算', '看護職員加配加算', '児童指導員等加配加算',
-];
-
-// 加算ダイアログ内の日付入力（blur でフォーマット）
-const AddictionDateField = ({ nameJp, label, value, onChange, disabled }) => {
-  const [localVal, setLocalVal] = useState(value || '');
-  const [err, setErr] = useState({ error: false, helperText: '' });
-  useEffect(() => { setLocalVal(value || ''); }, [value]);
-  const handleBlur = (e) => {
-    const result = validateDate(e.target.value, { emptyVal: '' });
-    setLocalVal(result.value);
-    onChange(nameJp, result.value);
-    setErr({ error: result.error, helperText: result.helperText });
-  };
-  return (
-    <TextField
-      label={label}
-      value={localVal}
-      onChange={e => { setLocalVal(e.target.value); }}
-      onBlur={handleBlur}
-      disabled={disabled}
-      error={err.error}
-      helperText={err.helperText}
-      InputLabelProps={{ shrink: true }}
-      style={{ minWidth: 200, margin: 4 }}
-    />
-  );
-};
-
-const getInitialUpperLimitEtc = (user = {}) => ({
-  [UPPER_LIMIT_TYPES.KANRI]: Array.isArray(user?.etc?.[UPPER_LIMIT_TYPES.KANRI])
-    ? user.etc[UPPER_LIMIT_TYPES.KANRI].map(e => createOfficeRow(e))
-    : [],
-  [UPPER_LIMIT_TYPES.KYOURYOKU]: Array.isArray(user?.etc?.[UPPER_LIMIT_TYPES.KYOURYOKU])
-    ? user.etc[UPPER_LIMIT_TYPES.KYOURYOKU].map(e => createOfficeRow(e))
-    : [],
-});
-
-const collectOfficeCandidates = (users = []) => {
-  const result = [];
-  users.forEach(userDt => {
-    if (!userDt?.etc) return;
-    [UPPER_LIMIT_TYPES.KYOURYOKU, UPPER_LIMIT_TYPES.KANRI].forEach(type => {
-      const list = userDt.etc?.[type];
-      if (!Array.isArray(list)) return;
-      list.forEach(x => {
-        const name = (x?.name || '').toString().trim();
-        const no = comMod.convHankaku((x?.no || '').toString().trim());
-        if (!name) return;
-        if (!result.some(y => y.name === name)) {
-          result.push({ name, no });
-        }
-      });
-    });
-  });
-  return result;
-};
-
-const resolveUpperLimitRole = (upperLimitEtc = {}) => {
-  const kyoryokuLen = Array.isArray(upperLimitEtc?.[UPPER_LIMIT_TYPES.KYOURYOKU])
-    ? upperLimitEtc[UPPER_LIMIT_TYPES.KYOURYOKU].length
-    : 0;
-  const kanriLen = Array.isArray(upperLimitEtc?.[UPPER_LIMIT_TYPES.KANRI])
-    ? upperLimitEtc[UPPER_LIMIT_TYPES.KANRI].length
-    : 0;
-  if (kyoryokuLen > 0) return UPPER_LIMIT_TYPES.KANRI;
-  if (kanriLen > 0) return UPPER_LIMIT_TYPES.KYOURYOKU;
-  return '';
-};
-
-const getUpperLimitButtonLabel = (upperLimitEtc = {}) => {
-  const kanriLen = Array.isArray(upperLimitEtc?.[UPPER_LIMIT_TYPES.KANRI])
-    ? upperLimitEtc[UPPER_LIMIT_TYPES.KANRI].length
-    : 0;
-  const kyoryokuLen = Array.isArray(upperLimitEtc?.[UPPER_LIMIT_TYPES.KYOURYOKU])
-    ? upperLimitEtc[UPPER_LIMIT_TYPES.KYOURYOKU].length
-    : 0;
-  if (kanriLen > 0) return UPPER_LIMIT_TYPES.KANRI;
-  if (kyoryokuLen > 0) return UPPER_LIMIT_TYPES.KYOURYOKU;
-  return '管理・協力事業所';
-};
-
-const getUpperLimitTextColor = (role) => {
-  if (role === UPPER_LIMIT_TYPES.KANRI) return teal[800];
-  if (role === UPPER_LIMIT_TYPES.KYOURYOKU) return blue[800];
-  return grey[700];
-};
-
-const getUpperLimitDisplayList = (upperLimitEtc = {}) => {
-  const kanri = Array.isArray(upperLimitEtc?.[UPPER_LIMIT_TYPES.KANRI]) ? upperLimitEtc[UPPER_LIMIT_TYPES.KANRI] : [];
-  const kyoryoku = Array.isArray(upperLimitEtc?.[UPPER_LIMIT_TYPES.KYOURYOKU]) ? upperLimitEtc[UPPER_LIMIT_TYPES.KYOURYOKU] : [];
-  return [...kanri, ...kyoryoku]
-    .filter(e => e?.name)
-    .map(e => `${e.name}（${e.no || ''}）`);
-};
-
-const normalizeOfficeNameForDup = (name = '') => (
-  (name || '')
-    .toString()
-    .normalize('NFKC')
-    .replace(/[　\s]+/g, ' ')
-    .trim()
-    .toLowerCase()
-);
-
-const createUpperLimitRowError = () => ({ name: '', no: '' });
-
-const normalizeUpperLimitEtcForSnapshot = (upperLimitEtc = {}) => {
-  const normalizeRows = (rows) => (
-    Array.isArray(rows)
-      ? rows.map((row) => ({
-        name: row?.name || '',
-        no: row?.no || '',
-        kanriKekka: row?.kanriKekka || '',
-        kettei: row?.kettei || '',
-      }))
-      : []
-  );
-  return {
-    [UPPER_LIMIT_TYPES.KANRI]: normalizeRows(upperLimitEtc?.[UPPER_LIMIT_TYPES.KANRI]),
-    [UPPER_LIMIT_TYPES.KYOURYOKU]: normalizeRows(upperLimitEtc?.[UPPER_LIMIT_TYPES.KYOURYOKU]),
-  };
-};
-
-const buildUnsavedSnapshot = (formValues, upperLimitEtc, stopUse, addictionValues = {}) => JSON.stringify({
-  formValues,
-  upperLimitEtc: normalizeUpperLimitEtcForSnapshot(upperLimitEtc),
-  stopUse: !!stopUse,
-  addictionValues,
-});
-
-const validateUpperLimitDialogRows = (rows = []) => {
-  const normalizedRows = rows.map((row) => {
-    const name = (row?.name || '').toString().trim();
-    const no = comMod.convHankaku((row?.no || '').toString().trim());
-    const normalizedName = normalizeOfficeNameForDup(name);
-    return { name, no, normalizedName };
-  });
-
-  const nameCount = {};
-  const noCount = {};
-  const pairCount = {};
-  normalizedRows.forEach(({ name, no, normalizedName }) => {
-    if (!name && !no) return;
-    if (name) nameCount[normalizedName] = (nameCount[normalizedName] || 0) + 1;
-    if (no) noCount[no] = (noCount[no] || 0) + 1;
-    if (name && no) {
-      const pairKey = `${normalizedName}::${no}`;
-      pairCount[pairKey] = (pairCount[pairKey] || 0) + 1;
-    }
-  });
-
-  return normalizedRows.map(({ name, no, normalizedName }) => {
-    const errors = createUpperLimitRowError();
-    if (!name && !no) return errors;
-
-    if (!name) errors.name = '事業所名を入力してください。';
-    if (!no) errors.no = '事業所番号を入力してください。';
-
-    if (name && forbiddenPtn.test(name)) {
-      errors.name = '利用できない文字があります';
-    }
-    if (no && !/^[0-9]{10}$/.test(no)) {
-      errors.no = '10桁の数字が必要です。';
-    }
-
-    const pairKey = `${normalizedName}::${no}`;
-    if (name && no && pairCount[pairKey] > 1) {
-      errors.name = '同じ事業所は登録できません。';
-      errors.no = '同じ事業所は登録できません。';
-      return errors;
-    }
-    if (name && nameCount[normalizedName] > 1 && !errors.name) {
-      errors.name = '事業所名が重複しています。';
-    }
-    if (no && noCount[no] > 1 && !errors.no) {
-      errors.no = '事業所番号が重複しています。';
-    }
-    return errors;
-  });
-};
 
 const UserEdit2026 = () => {
   const allState = useSelector(state => state);
@@ -446,6 +242,14 @@ const UserEdit2026 = () => {
   const formValuesRef = useRef(formValues);
   useEffect(() => { formValuesRef.current = formValues; }, [formValues]);
 
+  const {
+    kanaLoading,
+    kanaActionVisible,
+    refetchKanaForField,
+    fetchKanaForField,
+    handleKanaOnFieldBlur,
+  } = useKanaInput({ formValues, formValuesRef, formDispatch });
+
   // ---- Errors state ----
   const [errors, setErrors] = useState({});
 
@@ -454,13 +258,6 @@ const UserEdit2026 = () => {
   const [dialog, setDialog] = useState({ type: null, data: null });
   const [hnoList, setHnoList] = useState(null);
   const [isProvisionalHno, setIsProvisionalHno] = useState(false);
-  const [kanaLoading, setKanaLoading] = useState({});
-  const [kanaActionVisible, setKanaActionVisible] = useState({
-    klname: false,
-    kfname: false,
-    pklname: false,
-    pkfname: false,
-  });
   const [curService, setCurService] = useState(
     defService.includes(',') ? '複数サービス' : defService
   );
@@ -478,9 +275,28 @@ const UserEdit2026 = () => {
   // 加算設定
   const [addictionDialogOpen, setAddictionDialogOpen] = useState(false);
   const [addictionValues, setAddictionValues] = useState(() => {
-    return thisUser?.etc?.addiction ? { ...thisUser.etc.addiction } : {};
+    const etcAddiction = thisUser?.etc?.addiction ?? {};
+    const schAddiction = schedule?.[service]?.['UID' + uids]?.addiction ?? {};
+    return { ...etcAddiction, ...schAddiction };
   });
   const [addictionDialogValues, setAddictionDialogValues] = useState({});
+  const [addictionDialogService, setAddictionDialogService] = useState(null);
+  const [addictionValuesBySvc, setAddictionValuesBySvc] = useState(() => {
+    const multiSvc = thisUser?.etc?.multiSvc ?? {};
+    const result = {};
+    Object.keys(multiSvc).forEach(svc => {
+      if (multiSvc[svc]?.addiction) result[svc] = { ...multiSvc[svc].addiction };
+    });
+    // schedule優先でマージ（ByUserAddictionNoDialogと統一）
+    const svcs = defService.includes(',') ? defService.split(',') : [];
+    svcs.forEach(svc => {
+      const schAddiction = schedule?.[svc]?.['UID' + uids]?.addiction ?? {};
+      if (Object.keys(schAddiction).length) {
+        result[svc] = { ...(result[svc] ?? {}), ...schAddiction };
+      }
+    });
+    return result;
+  });
 
   const [initialSnapshot, setInitialSnapshot] = useState('');
   const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
@@ -533,10 +349,14 @@ const UserEdit2026 = () => {
 
   useEffect(() => {
     setUpperLimitEtc(getInitialUpperLimitEtc(thisUser));
-    setAddictionValues(thisUser?.etc?.addiction ? { ...thisUser.etc.addiction } : {});
+    const etcAddiction = thisUser?.etc?.addiction ?? {};
+    const schAddiction = schedule?.[service]?.['UID' + uids]?.addiction ?? {};
+    setAddictionValues({ ...etcAddiction, ...schAddiction });
   }, [thisUser]);
   useEffect(() => {
-    const initAddiction = thisUser?.etc?.addiction ? { ...thisUser.etc.addiction } : {};
+    const etcAddiction = thisUser?.etc?.addiction ?? {};
+    const schAddiction = schedule?.[service]?.['UID' + uids]?.addiction ?? {};
+    const initAddiction = { ...etcAddiction, ...schAddiction };
     setInitialSnapshot(buildUnsavedSnapshot(formValues, getInitialUpperLimitEtc(thisUser), stopUse, initAddiction));
   }, [uids]);
   useEffect(() => {
@@ -576,221 +396,6 @@ const UserEdit2026 = () => {
       const nextPath = `${next.pathname || ''}${next.search || ''}${next.hash || ''}`;
       history.push(nextPath);
     }
-  };
-  const KANA_SYSTEM_ROLE = "日本人の読み仮名を教えてください。最近10年ぐらいで生まれた子どもの名前も考慮して下さい。シンプルに読み仮名だけ答えるようにしてください";
-  const MAX_KANA_EXCLUSIONS = 10;
-  const MAX_KANA_CANDIDATES = 5;
-  const KANA_FIELDS = ['klname', 'kfname', 'pklname', 'pkfname'];
-  const KANA_SOURCE_MAP = {
-    klname: 'lname',
-    kfname: 'fname',
-    pklname: 'plname',
-    pkfname: 'pfname',
-  };
-  const KANJI_TO_KANA_MAP = {
-    lname: 'klname',
-    fname: 'kfname',
-    plname: 'pklname',
-    pfname: 'pkfname',
-  };
-  const kanaExclusionHistoryRef = useRef({});
-  const kanaCandidatesRef = useRef({});
-  const kanaCandidateCursorRef = useRef({});
-  const kanaActionTimerRef = useRef({});
-  const kanaEditedRef = useRef({});
-  const kanaInitialFilledRef = useRef({});
-  const kanaAutoValueRef = useRef({});
-  const kanjiBlurValueRef = useRef({});
-  const kanaLoadingRef = useRef(kanaLoading);
-  useEffect(() => { kanaLoadingRef.current = kanaLoading; }, [kanaLoading]);
-
-  useEffect(() => {
-    KANA_FIELDS.forEach((field) => {
-      kanaEditedRef.current[field] = false;
-      kanaInitialFilledRef.current[field] = !!(formValues[field] || '').toString().trim();
-      kanaAutoValueRef.current[field] = (formValues[field] || '').toString().trim();
-    });
-    Object.keys(KANJI_TO_KANA_MAP).forEach((kanjiField) => {
-      kanjiBlurValueRef.current[kanjiField] = (formValues[kanjiField] || '').toString().trim();
-    });
-  }, []);
-
-  useEffect(() => {
-    const nextHidden = {};
-    KANA_FIELDS.forEach((field) => {
-      if (kanaActionTimerRef.current[field]) {
-        clearTimeout(kanaActionTimerRef.current[field]);
-        kanaActionTimerRef.current[field] = null;
-      }
-
-      const sourceField = KANA_SOURCE_MAP[field];
-      const hasSource = !!(formValues[sourceField] || '').toString().trim();
-      const hasKana = !!(formValues[field] || '').toString().trim();
-      const editedByUser = !!kanaEditedRef.current[field];
-      const initiallyFilled = !!kanaInitialFilledRef.current[field];
-      const loading = !!kanaLoading[field];
-      const hasCandidates = (kanaCandidatesRef.current[field] || []).length > 0;
-
-      if (!hasSource || initiallyFilled) {
-        nextHidden[field] = false;
-        return;
-      }
-      // ユーザー編集済みでも、空欄に戻したら再び1秒後表示を許可する
-      if (editedByUser && hasKana) {
-        nextHidden[field] = false;
-        return;
-      }
-      if (hasKana && hasCandidates) {
-        nextHidden[field] = true;
-        return;
-      }
-      if (hasKana || loading) {
-        nextHidden[field] = false;
-        return;
-      }
-
-      nextHidden[field] = false;
-      kanaActionTimerRef.current[field] = setTimeout(() => {
-        const latestKana = (formValuesRef.current[field] || '').toString().trim();
-        const latestSource = (formValuesRef.current[sourceField] || '').toString().trim();
-        const latestLoading = !!kanaLoadingRef.current[field];
-        if (!latestKana && latestSource && !kanaEditedRef.current[field] && !kanaInitialFilledRef.current[field] && !latestLoading) {
-          setKanaActionVisible(prev => ({ ...prev, [field]: true }));
-        }
-      }, 1000);
-    });
-
-    setKanaActionVisible(prev => {
-      const next = { ...prev, ...nextHidden };
-      const changed = KANA_FIELDS.some(field => prev[field] !== next[field]);
-      return changed ? next : prev;
-    });
-
-    return () => {
-      KANA_FIELDS.forEach((field) => {
-        if (kanaActionTimerRef.current[field]) {
-          clearTimeout(kanaActionTimerRef.current[field]);
-          kanaActionTimerRef.current[field] = null;
-        }
-      });
-    };
-  }, [
-    formValues.lname, formValues.fname, formValues.plname, formValues.pfname,
-    formValues.klname, formValues.kfname, formValues.pklname, formValues.pkfname,
-    kanaLoading.klname, kanaLoading.kfname, kanaLoading.pklname, kanaLoading.pkfname,
-  ]);
-
-  const getKanaExclusionList = (kanaField, extraKana = '') => {
-    const history = kanaExclusionHistoryRef.current[kanaField] || [];
-    const merged = [...history];
-    const extra = (extraKana || '').trim();
-    if (extra && !merged.includes(extra)) merged.push(extra);
-    return merged.slice(-MAX_KANA_EXCLUSIONS);
-  };
-
-  const rememberKanaExclusion = (kanaField, kana) => {
-    const nextKana = (kana || '').trim();
-    if (!nextKana) return;
-    const prev = kanaExclusionHistoryRef.current[kanaField] || [];
-    const unique = prev.filter(e => e !== nextKana);
-    kanaExclusionHistoryRef.current[kanaField] = [...unique, nextKana].slice(-MAX_KANA_EXCLUSIONS);
-  };
-
-  const normalizeKana = (value = '') => (
-    value
-      .toString()
-      .trim()
-      .normalize('NFKC')
-      .replace(/\s+/g, '')
-      .replace(/[・･]/g, '')
-  );
-
-  const parseKanaCandidates = (rawText = '') => {
-    const text = (rawText || '').trim();
-    if (!text) return [];
-
-    const normalizeArray = (arr) => [...new Set(
-      (arr || [])
-        .map(e => (e || '').toString().trim())
-        .filter(Boolean)
-    )];
-
-    // 1) JSON配列そのもの
-    try {
-      const parsed = JSON.parse(text);
-      if (Array.isArray(parsed)) return normalizeArray(parsed);
-    } catch (_) {}
-
-    // 2) 文章内に配列が埋め込まれているケース
-    const arrayMatch = text.match(/\[[\s\S]*\]/);
-    if (arrayMatch) {
-      try {
-        const parsed = JSON.parse(arrayMatch[0]);
-        if (Array.isArray(parsed)) return normalizeArray(parsed);
-      } catch (_) {}
-    }
-
-    // 3) フォールバック: 改行や区切りで分解
-    const fallback = text
-      .split(/\n|、|,/)
-      .map(e => e.replace(/^\s*\d+[\.\):：\s-]*/, '').trim())
-      .filter(Boolean);
-    return normalizeArray(fallback);
-  };
-
-  const setKanaCandidates = (kanaField, candidates, excludedKanaSet = new Set(), decidedKana = '') => {
-    const decided = normalizeKana(decidedKana);
-    const unique = [];
-    const seen = new Set();
-    (candidates || []).forEach(c => {
-      const candidate = (c || '').trim();
-      const n = normalizeKana(candidate);
-      if (!n) return;
-      if (excludedKanaSet.has(n)) return;
-      if (seen.has(n)) return;
-      seen.add(n);
-      unique.push(candidate);
-    });
-    const picked = unique.slice(0, MAX_KANA_CANDIDATES);
-    kanaCandidatesRef.current[kanaField] = picked;
-    const decidedIndex = picked.findIndex(e => normalizeKana(e) === decided);
-    // 初回採用候補の次から巡回開始（0採用なら次は1、最後の次は0）
-    kanaCandidateCursorRef.current[kanaField] = (
-      decidedIndex >= 0 && picked.length > 0
-        ? (decidedIndex + 1) % picked.length
-        : 0
-    );
-  };
-
-  const popKanaFromCandidates = (kanaField, excludeKanaList = []) => {
-    const current = kanaCandidatesRef.current[kanaField] || [];
-    if (!current.length) return '';
-    const len = current.length;
-    let cursor = Number(kanaCandidateCursorRef.current[kanaField] || 0);
-    if (cursor < 0 || cursor >= len) cursor = 0;
-    const excludedSet = new Set(
-      (excludeKanaList || [])
-        .map(e => normalizeKana(e))
-        .filter(Boolean)
-    );
-    // まずは除外リストを考慮して1周探索
-    for (let i = 0; i < len; i++) {
-      const idx = (cursor + i) % len;
-      const n = normalizeKana(current[idx]);
-      if (!n || excludedSet.has(n)) continue;
-      kanaCandidateCursorRef.current[kanaField] = (idx + 1) % len;
-      return current[idx];
-    }
-    // 全候補が除外済みなら循環を優先して、次候補を返す
-    const fallback = current[cursor] || '';
-    kanaCandidateCursorRef.current[kanaField] = (cursor + 1) % len;
-    return fallback;
-  };
-
-  const resetKanaQueryState = (kanaField) => {
-    kanaCandidatesRef.current[kanaField] = [];
-    kanaCandidateCursorRef.current[kanaField] = 0;
-    kanaExclusionHistoryRef.current[kanaField] = [];
   };
 
   // 所属リスト
@@ -858,50 +463,6 @@ const UserEdit2026 = () => {
     return () => { isMounted = false; };
   }, []);
 
-  // ---- 読み仮名自動取得 ----
-  useEffect(() => {
-    const getMissingKana = async () => {
-      const missingKanaMap = {};
-      if (formValues.lname && !formValues.klname) missingKanaMap.klname = formValues.lname;
-      if (formValues.fname && !formValues.kfname) missingKanaMap.kfname = formValues.fname;
-      if (formValues.plname && !formValues.pklname) missingKanaMap.pklname = formValues.plname;
-      if (formValues.pfname && !formValues.pkfname) missingKanaMap.pkfname = formValues.pfname;
-      if (!Object.keys(missingKanaMap).length) return;
-
-      for (const [kanaKey, kanjiValue] of Object.entries(missingKanaMap)) {
-        setKanaLoading(prev => ({ ...prev, [kanaKey]: true }));
-        try {
-          const response = await llmApiCall(
-            {
-              prompt: kanjiValue,
-              systemrole: "日本人の読み仮名を教えてください。最近10年ぐらいで生まれた子どもの名前も考慮して下さい。シンプルに読み仮名だけ答えるようにしてください",
-            },
-            'E232298', '', '',
-            '', '', false
-          );
-          if (response && response.data && response.data.response) {
-            const kana = response.data.response.trim();
-            kanaAutoValueRef.current[kanaKey] = kana;
-            kanaEditedRef.current[kanaKey] = false;
-            formDispatch({ type: 'SET_FIELD', name: kanaKey, value: kana });
-          }
-        } catch (error) {
-          console.error(`${kanjiValue}の読み仮名取得に失敗しました`, error);
-        } finally {
-          setKanaLoading(prev => ({ ...prev, [kanaKey]: false }));
-        }
-      }
-    };
-
-    // 漢字があるのに読み仮名がない場合のみ実行
-    if ((formValues.lname && !formValues.klname) ||
-      (formValues.fname && !formValues.kfname) ||
-      (formValues.plname && !formValues.pklname) ||
-      (formValues.pfname && !formValues.pkfname)) {
-      getMissingKana();
-    }
-  }, []);
-
   // ---- ハンドラ ----
   const handleFieldChange = (name, value) => {
     formDispatch({ type: 'SET_FIELD', name, value });
@@ -913,131 +474,11 @@ const UserEdit2026 = () => {
     }
   };
 
-  // 読み仮名をLLMで取得し、関連フィールドも連動
-  const fetchKanaForField = async (kanjiValue, kanaField, options = {}) => {
-    const { isRetry = false, excludeKanaList = [] } = options;
-    const parentKanaMap = { klname: 'pklname' };
-    const normalizedExcludeKanaList = [...new Set(
-      (excludeKanaList || [])
-        .map(e => (e || '').trim())
-        .filter(Boolean)
-    )].slice(-MAX_KANA_EXCLUSIONS);
-    const excludedKanaSet = new Set(
-      normalizedExcludeKanaList.map(e => normalizeKana(e)).filter(Boolean)
-    );
-    setKanaLoading(prev => ({ ...prev, [kanaField]: true }));
-    try {
-      const prompt = [
-          '次の漢字氏名の読み仮名候補を5個考えてください。',
-        '必ずJSON配列のみで返答してください。例: ["たろう","じろう"]',
-        '候補は読み仮名だけにしてください。',
-        normalizedExcludeKanaList.length > 0
-          ? `以下の読みは候補から除外してください: ${normalizedExcludeKanaList.join('、')}`
-          : '',
-        `漢字名: ${kanjiValue}`,
-      ].filter(Boolean).join('\n');
-      const response = await llmApiCall(
-        { prompt, systemrole: KANA_SYSTEM_ROLE },
-        'E232298', '', '',
-        '', '', false
-      );
-      const rawResponse = response?.data?.response?.trim();
-      if (!rawResponse) return;
-
-      const candidates = parseKanaCandidates(rawResponse);
-      const decidedKana = candidates.find(e => !excludedKanaSet.has(normalizeKana(e))) || '';
-      setKanaCandidates(kanaField, candidates, excludedKanaSet, decidedKana);
-
-      if (decidedKana) {
-        rememberKanaExclusion(kanaField, decidedKana);
-        kanaAutoValueRef.current[kanaField] = decidedKana;
-        kanaEditedRef.current[kanaField] = false;
-        formDispatch({ type: 'SET_FIELD', name: kanaField, value: decidedKana });
-        // 保護者の読み仮名が空なら連動
-        const parentKanaField = parentKanaMap[kanaField];
-        if (parentKanaField && !formValuesRef.current[parentKanaField]) {
-          kanaAutoValueRef.current[parentKanaField] = decidedKana;
-          kanaEditedRef.current[parentKanaField] = false;
-          formDispatch({ type: 'SET_FIELD', name: parentKanaField, value: decidedKana });
-        }
-      } else if (isRetry) {
-        console.warn(`${kanjiValue}の読み仮名再取得で、除外候補以外の候補を取得できませんでした`);
-      }
-    } catch (error) {
-      console.error(`${kanjiValue}の読み仮名取得に失敗しました`, error);
-    } finally {
-      setKanaLoading(prev => ({ ...prev, [kanaField]: false }));
-    }
-  };
-
-  const refetchKanaForField = (kanaField) => {
-    const sourceMap = {
-      klname: 'lname',
-      kfname: 'fname',
-      pklname: 'plname',
-      pkfname: 'pfname',
-    };
-    const kanjiField = sourceMap[kanaField];
-    if (!kanjiField) return;
-    const kanjiValue = formValuesRef.current[kanjiField];
-    if (!kanjiValue) return;
-    const currentKana = formValuesRef.current[kanaField];
-    const excludeKanaList = getKanaExclusionList(kanaField, currentKana);
-    const cachedKana = popKanaFromCandidates(kanaField, excludeKanaList);
-    if (cachedKana) {
-      const parentKanaMap = { klname: 'pklname' };
-      rememberKanaExclusion(kanaField, cachedKana);
-      kanaAutoValueRef.current[kanaField] = cachedKana;
-      kanaEditedRef.current[kanaField] = false;
-      formDispatch({ type: 'SET_FIELD', name: kanaField, value: cachedKana });
-      const parentKanaField = parentKanaMap[kanaField];
-      if (parentKanaField && !formValuesRef.current[parentKanaField]) {
-        kanaAutoValueRef.current[parentKanaField] = cachedKana;
-        kanaEditedRef.current[parentKanaField] = false;
-        formDispatch({ type: 'SET_FIELD', name: parentKanaField, value: cachedKana });
-      }
-      return;
-    }
-    fetchKanaForField(kanjiValue, kanaField, { isRetry: true, excludeKanaList });
-  };
-
   const handleFieldBlur = (name, result) => {
     if (result.value !== undefined) {
       formDispatch({ type: 'SET_FIELD', name, value: result.value });
     }
-    let didKanjiChangeFetch = false;
-    const kanaFieldFromKanji = KANJI_TO_KANA_MAP[name];
-    if (kanaFieldFromKanji) {
-      const nextKanji = (result.value || '').toString().trim();
-      const prevKanji = (kanjiBlurValueRef.current[name] || '').toString().trim();
-      const kanjiChanged = nextKanji !== prevKanji;
-      kanjiBlurValueRef.current[name] = nextKanji;
-      if (kanjiChanged) {
-        // 漢字が変わった場合は、以前の候補を破棄して新しい漢字で再問い合わせする
-        resetKanaQueryState(kanaFieldFromKanji);
-        kanaInitialFilledRef.current[kanaFieldFromKanji] = false;
-        kanaEditedRef.current[kanaFieldFromKanji] = false;
-        kanaAutoValueRef.current[kanaFieldFromKanji] = '';
-        formDispatch({ type: 'SET_FIELD', name: kanaFieldFromKanji, value: '' });
-        setKanaActionVisible(prev => ({ ...prev, [kanaFieldFromKanji]: true }));
-        if (nextKanji) {
-          fetchKanaForField(nextKanji, kanaFieldFromKanji, { isRetry: true, excludeKanaList: [] });
-          didKanjiChangeFetch = true;
-        }
-      }
-    }
-    if (KANA_SOURCE_MAP[name]) {
-      const nextVal = (result.value || '').toString().trim();
-      const autoVal = (kanaAutoValueRef.current[name] || '').toString().trim();
-      // 空欄へ戻した場合は「再取得したい」ケースなので編集フラグを解除
-      if (!nextVal) {
-        kanaEditedRef.current[name] = false;
-        resetKanaQueryState(name);
-      } else if (nextVal !== autoVal) {
-        kanaEditedRef.current[name] = true;
-        setKanaActionVisible(prev => ({ ...prev, [name]: false }));
-      }
-    }
+    const { didKanjiChangeFetch } = handleKanaOnFieldBlur(name, result.value);
     setErrors(prev => ({
       ...prev,
       [name]: { error: result.error, helperText: result.helperText },
@@ -1091,8 +532,14 @@ const UserEdit2026 = () => {
     setAddictionDialogValues(prev => ({ ...prev, [nameJp]: value }));
   };
 
-  const openAddictionDialog = () => {
-    setAddictionDialogValues({ ...addictionValues });
+  const openAddictionDialog = (svc = null) => {
+    setAddictionDialogService(svc);
+    if (svc) {
+      const svcVals = addictionValuesBySvc[svc] ?? {};
+      setAddictionDialogValues({ ...svcVals });
+    } else {
+      setAddictionDialogValues({ ...addictionValues });
+    }
     setAddictionDialogOpen(true);
   };
 
@@ -1101,7 +548,16 @@ const UserEdit2026 = () => {
   };
 
   const registerAddictionDialog = () => {
-    setAddictionValues({ ...addictionDialogValues });
+    if (addictionDialogService) {
+      setAddictionValuesBySvc(prev => ({
+        ...prev,
+        [addictionDialogService]: { ...addictionDialogValues },
+      }));
+      // マルチサービス時も etc.addiction を更新（ByUserAddictionNoDialogと統一）
+      setAddictionValues(prev => ({ ...prev, ...addictionDialogValues }));
+    } else {
+      setAddictionValues({ ...addictionDialogValues });
+    }
     setAddictionDialogOpen(false);
   };
 
@@ -1109,9 +565,13 @@ const UserEdit2026 = () => {
     key => addictionDialogValues[key] && addictionDialogValues[key] !== ''
   );
 
-  const addictionDisplayList = Object.entries(addictionValues)
-    .filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-    .map(([key, val]) => ({ key, val }));
+  const addictionDisplayList = (() => {
+    const merged = { ...addictionValues };
+    Object.values(addictionValuesBySvc).forEach(svcVals => Object.assign(merged, svcVals));
+    return Object.entries(merged)
+      .filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+      .map(([key, val]) => ({ key, val }));
+  })();
 
   const openUpperLimitMenu = (event) => {
     setUpperLimitMenuAnchor(event.currentTarget);
@@ -1273,6 +733,7 @@ const UserEdit2026 = () => {
         controleMode,
         etcOverride: upperLimitEtc,
         addictionOverride: addictionValues,
+        addictionSvcOverride: addictionValuesBySvc,
         stateService: service,
       },
     });
@@ -1706,27 +1167,64 @@ const UserEdit2026 = () => {
               </div>
 
             {/* 利用者別加算・請求設定 */}
-            <div className={classes.cntRow}>
-              <Button
-                onClick={openAddictionDialog}
-                startIcon={<EditIcon />}
-                variant='outlined'
-                style={{ color: orange[800], minWidth: 220 ,  justifyContent: 'flex-start' }}
-              >
-                利用者別加算・請求設定
-              </Button>
-              {addictionDisplayList.length > 0 && (
-                <div className={classes.upperLimitListBox}>
-                  {addictionDisplayList.map(({ key, val }, idx) => (
-                    <div className={classes.upperLimitListRow} key={idx} style={{ color: orange[800] }}>
-                      {val === 1 || val === '1'
-                        ? key
-                        : <>{key}<ArrowRightIcon style={{ fontSize: 16, verticalAlign: 'middle' }} />{val}</>
-                      }
+            <div className={classes.cntRow} style={defService.includes(',') ? { flexDirection: 'column' } : {}}>
+              {defService.includes(',')
+                ? defService.split(',').map(svc => {
+                    const isHohou = svc === HOHOU;
+                    const btnColor = isHohou ? purple[800] : orange[800];
+                    const svcDisplayList = Object.entries(addictionValuesBySvc[svc] ?? {})
+                      .filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+                      .map(([key, val]) => ({ key, val }));
+                    return (
+                      <div key={svc} style={{ display: 'flex', alignItems: 'flex-start', marginBottom: 4 }}>
+                        <Button
+                          onClick={() => openAddictionDialog(svc)}
+                          startIcon={<EditIcon />}
+                          variant='outlined'
+                          style={{ color: btnColor, minWidth: 220, justifyContent: 'flex-start', borderColor: btnColor }}
+                        >
+                          利用者別加算・{comMod.shortWord(svc)}
+                        </Button>
+                        {svcDisplayList.length > 0 && (
+                          <div className={classes.upperLimitListBox}>
+                            {svcDisplayList.map(({ key, val }, idx) => (
+                              <div className={classes.upperLimitListRow} key={idx} style={{ color: btnColor }}>
+                                {val === 1 || val === '1'
+                                  ? key
+                                  : <>{key}<ArrowRightIcon style={{ fontSize: 16, verticalAlign: 'middle' }} />{val}</>
+                                }
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                : (
+                    <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+                      <Button
+                        onClick={() => openAddictionDialog()}
+                        startIcon={<EditIcon />}
+                        variant='outlined'
+                        style={{ color: orange[800], minWidth: 220, justifyContent: 'flex-start' }}
+                      >
+                        利用者別加算・請求設定
+                      </Button>
+                      {addictionDisplayList.length > 0 && (
+                        <div className={classes.upperLimitListBox}>
+                          {addictionDisplayList.map(({ key, val }, idx) => (
+                            <div className={classes.upperLimitListRow} key={idx} style={{ color: orange[800] }}>
+                              {val === 1 || val === '1'
+                                ? key
+                                : <>{key}<ArrowRightIcon style={{ fontSize: 16, verticalAlign: 'middle' }} />{val}</>
+                              }
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
+                  )
+              }
             </div>
 
             {/* 拡張設定 */}
@@ -1952,12 +1450,18 @@ const UserEdit2026 = () => {
         onClose={closeAddictionDialog}
         maxWidth='md'
         fullWidth
+        PaperProps={{ style: { width: 640 } }}
       >
-        <DialogTitle>利用者別加算・請求設定</DialogTitle>
+        <DialogTitle>
+          {addictionDialogService
+            ? `利用者別加算・${comMod.shortWord(addictionDialogService)}`
+            : '利用者別加算・請求設定'}
+        </DialogTitle>
         <DialogContent>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {ADDICTION_ITEMS.map(nameJp => {
-              const vis = getAddictionVisibility(nameJp, { uid: uids, dLayer: 1 });
+              const dialogSvc = addictionDialogService || service;
+              const vis = getAddictionVisibility(nameJp, { uid: uids, dLayer: 1, service: addictionDialogService || undefined });
               if (!vis.visible) return null;
               if (vis.disabled) return null;
               // 強度行動障害児支援加算９０日以内: 2024-11-01以降は日付入力
@@ -1972,9 +1476,9 @@ const UserEdit2026 = () => {
                   />
                 );
               }
-              const opts = getAddictionOption(nameJp, stdDate, service);
+              const opts = getAddictionOption(nameJp, stdDate, dialogSvc);
               return (
-                <FormControl key={nameJp} style={{ minWidth: 200, margin: 4 }}>
+                <FormControl key={nameJp} style={{ width: 180, margin: 4 }}>
                   <InputLabel shrink>{comMod.shortWord(nameJp)}</InputLabel>
                   <Select
                     value={addictionDialogValues[nameJp] ?? vis.defaultValue ?? ''}

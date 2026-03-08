@@ -1020,3 +1020,29 @@ export const DokujiJougenTextField = ({
     </div>
   );
 };
+
+// 加算ダイアログ内の日付入力（blur でフォーマット）
+export const AddictionDateField = ({ nameJp, label, value, onChange, disabled }) => {
+  const [localVal, setLocalVal] = useState(value || '');
+  const [err, setErr] = useState({ error: false, helperText: '' });
+  useEffect(() => { setLocalVal(value || ''); }, [value]);
+  const handleBlur = (e) => {
+    const result = validateDate(e.target.value, { emptyVal: '' });
+    setLocalVal(result.value);
+    onChange(nameJp, result.value);
+    setErr({ error: result.error, helperText: result.helperText });
+  };
+  return (
+    <TextField
+      label={label}
+      value={localVal}
+      onChange={e => { setLocalVal(e.target.value); }}
+      onBlur={handleBlur}
+      disabled={disabled}
+      error={err.error}
+      helperText={err.helperText}
+      InputLabelProps={{ shrink: true }}
+      style={{ width: 180, margin: 4 }}
+    />
+  );
+};
