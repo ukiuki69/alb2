@@ -196,7 +196,9 @@ const ADDICTION_VISIBILITY_RULES = {
       return null;
     },
   },
-  '特別支援加算': {},
+  '特別支援加算': {
+    services: [HOUDAY, JIHATSU],
+  },
   '家庭連携数': {},
   '家庭連携加算': {},
   '関係機関連携加算': {},
@@ -211,9 +213,9 @@ const ADDICTION_VISIBILITY_RULES = {
     services: [HOUDAY, JIHATSU],
   },
   '人工内耳装用児支援加算': {
-    custom: ({ uid }) => {
+    custom: ({ uid, service: svcOverride }) => {
       const state = store.getState();
-      const service = resolveService(uid);
+      const service = svcOverride || resolveService(uid);
       if (service !== JIHATSU || state.stdDate <= '2024-04-01') return { visible: false };
       return null;
     },
@@ -251,6 +253,7 @@ const ADDICTION_VISIBILITY_RULES = {
     },
   },
   '医療的ケア児支援加算': {
+    services: [HOUDAY, JIHATSU],
     custom: ({ uid }) => {
       const user = resolveUser(uid);
       const icareType = user?.icareType || '';
@@ -266,9 +269,10 @@ const ADDICTION_VISIBILITY_RULES = {
     services: [HOUDAY, JIHATSU],
   },
   'サービス提供時間区分': {
-    custom: () => {
+    custom: (params) => {
       const state = store.getState();
-      if (state.service !== HOUDAY) return { visible: false };
+      const svc = params.service || state.service;
+      if (svc !== HOUDAY) return { visible: false };
       if (state.stdDate >= '2024-04-01') return { visible: false };
       return null;
     },
@@ -282,8 +286,8 @@ const ADDICTION_VISIBILITY_RULES = {
     },
   },
   '食事提供加算': {
-    custom: () => {
-      const service = store.getState().service;
+    custom: (params) => {
+      const service = params.service || store.getState().service;
       if (service !== JIHATSU) return { visible: false };
       return null;
     },
@@ -292,22 +296,22 @@ const ADDICTION_VISIBILITY_RULES = {
     services: [HOUDAY, JIHATSU],
   },
   '地方公共団体': {
-    custom: () => {
-      const service = store.getState().service;
+    custom: (params) => {
+      const service = params.service || store.getState().service;
       if (service !== JIHATSU) return { visible: false };
       return null;
     },
   },
   '就学区分': {
-    custom: () => {
-      const service = store.getState().service;
+    custom: (params) => {
+      const service = params.service || store.getState().service;
       if (service !== JIHATSU) return { visible: false };
       return null;
     },
   },
   '児童発達支援センター': {
-    custom: () => {
-      const service = store.getState().service;
+    custom: (params) => {
+      const service = params.service || store.getState().service;
       if (service !== JIHATSU) return { visible: false };
       return null;
     },
@@ -337,9 +341,10 @@ const ADDICTION_VISIBILITY_RULES = {
     },
   },
   '放課後デイ専門': {
-    custom: () => {
+    custom: (params) => {
       const state = store.getState();
-      if (state.service !== HOHOU) return { visible: false };
+      const svc = params.service || state.service;
+      if (svc !== HOHOU) return { visible: false };
       if (state.stdDate >= '2024-06-01') return { visible: false };
       return null;
     },
@@ -387,9 +392,11 @@ const ADDICTION_VISIBILITY_RULES = {
     dateMin: '2024-04-01',
   },
   '中核機能強化加算': {
+    services: [HOUDAY, JIHATSU],
     dateMin: '2024-04-01',
   },
   '中核機能強化事業所加算': {
+    services: [HOUDAY, JIHATSU],
     dateMin: '2024-04-01',
   },
   '専門的支援体制加算': {
@@ -408,18 +415,21 @@ const ADDICTION_VISIBILITY_RULES = {
     dateMin: '2024-04-01',
   },
   '視覚聴覚言語機能障害児支援加算': {
+    services: [HOUDAY, JIHATSU],
     dateMin: '2024-04-01',
   },
   '入浴支援加算': {
     dateMin: '2024-04-01',
   },
   '送迎加算設定': {
+    services: [HOUDAY, JIHATSU],
     dateMin: '2024-04-01',
   },
   '集中的支援加算': {
     dateMin: '2024-04-01',
   },
   '個別サポート加算３': {
+    services: [HOUDAY, JIHATSU],
     dateMin: '2024-04-01',
   },
   '事業所間連携加算': {
@@ -442,6 +452,7 @@ const ADDICTION_VISIBILITY_RULES = {
     dateMin: '2024-04-01',
   },
   '強度行動障害児支援加算９０日以内': {
+    services: [HOUDAY, JIHATSU],
     dateMin: '2024-04-01',
   },
   '多職種連携支援加算': {
@@ -473,11 +484,12 @@ const ADDICTION_VISIBILITY_RULES = {
   '医療的ケア児基本報酬': {
     services: [HOUDAY, JIHATSU],
     dateMin: '2024-11-01',
-    custom: ({ uid }) => {
+    custom: ({ uid, service: svcOverride }) => {
       const state = store.getState();
       const user = resolveUser(uid);
       const uidStr = convUID(uid).str;
-      const uAddiction = state.schedule?.[state.service]?.[uidStr]?.addiction?.医療ケア児基本報酬区分;
+      const svc = svcOverride || state.service;
+      const uAddiction = state.schedule?.[svc]?.[uidStr]?.addiction?.医療ケア児基本報酬区分;
       if (!user?.icareType) return { visible: false };
       if (uAddiction) return { visible: false };
       return null;
@@ -486,11 +498,12 @@ const ADDICTION_VISIBILITY_RULES = {
   '医療的ケア児延長支援': {
     services: [HOUDAY, JIHATSU],
     dateMin: '2024-11-01',
-    custom: ({ uid }) => {
+    custom: ({ uid, service: svcOverride }) => {
       const state = store.getState();
       const user = resolveUser(uid);
       const uidStr = convUID(uid).str;
-      const uAddiction = state.schedule?.[state.service]?.[uidStr]?.addiction?.医療ケア児基本報酬区分;
+      const svc = svcOverride || state.service;
+      const uAddiction = state.schedule?.[svc]?.[uidStr]?.addiction?.医療ケア児基本報酬区分;
       if (!user?.icareType) return { visible: false };
       if (uAddiction) return { visible: false };
       return null;
@@ -515,7 +528,7 @@ const ADDICTION_VISIBILITY_RULES = {
  * @returns {{ visible: boolean, disabled: boolean, defaultValue: any, preDef: any, def: any }}
  */
 export const getAddictionVisibility = (nameJp, params = {}) => {
-  const { uid = '', did = '', dLayer = 10, schedule } = params;
+  const { uid = '', did = '', dLayer = 10, schedule, service: serviceOverride } = params;
   const base = baseVisibility(nameJp, { uid, did, dLayer, schedule });
 
   // notDisp（hideaddiction設定）で非表示
@@ -528,7 +541,7 @@ export const getAddictionVisibility = (nameJp, params = {}) => {
   }
 
   const state = store.getState();
-  const service = resolveService(uid);
+  const service = serviceOverride || resolveService(uid);
 
   // サービスフィルタ
   if (rule.services && rule.services.length > 0) {
@@ -553,7 +566,7 @@ export const getAddictionVisibility = (nameJp, params = {}) => {
 
   // カスタム判定
   if (rule.custom) {
-    const customResult = rule.custom({ uid, did, dLayer, schedule });
+    const customResult = rule.custom({ uid, did, dLayer, schedule, service });
     if (customResult && customResult.visible === false) {
       return { ...base, visible: false };
     }
@@ -567,6 +580,25 @@ export const getAddictionVisibility = (nameJp, params = {}) => {
  * @returns {string[]}
  */
 export const getAddictionNames = () => Object.keys(ADDICTION_VISIBILITY_RULES);
+
+// UserEdit2026 の加算ダイアログで扱う加算項目
+export const ADDICTION_ITEMS = [
+  '個別サポート加算１', '個別サポート加算２', '個別サポート加算３',
+  '医療的ケア児支援加算', '医療連携体制加算',
+  '強度行動障害児支援加算', '強度行動障害児支援加算９０日以内',
+  '人工内耳装用児支援加算', '食事提供加算', '視覚聴覚言語機能障害児支援加算',
+  '送迎加算設定', '通所自立支援加算', '児童発達支援無償化',
+  '福祉専門職員配置等加算', '児童指導員等加配加算', '看護職員加配加算',
+  '専門的支援加算', '多子軽減措置', '通所支援計画未作成減算',
+  '児童発達支援管理責任者欠如減算', '送迎加算Ⅰ一定条件',
+  '特別支援加算', 'ケアニーズ対応加算',
+  '中核機能強化加算', '中核機能強化事業所加算',
+];
+
+// 共通設定で行うことを推奨する加算（利用者別設定の警告表示用）
+export const ADDICTION_RESTRICTED_KEYS = [
+  '福祉専門職員配置等加算', '看護職員加配加算', '児童指導員等加配加算',
+];
 
 /**
  * 指定された加算項目リストに対して一括で表示判定を行う

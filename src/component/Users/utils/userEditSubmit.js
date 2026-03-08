@@ -109,6 +109,19 @@ export const submitUserEdit = async ({
     };
   }
 
+  // addictionSvcOverride の処理（複数サービスの場合、サービスごとに etc.multiSvc[svc].addiction へ保存）
+  if (options.addictionSvcOverride && typeof options.addictionSvcOverride === 'object' && Object.keys(options.addictionSvcOverride).length) {
+    const multiSvc = { ...(userDatas.etc.multiSvc || {}) };
+    Object.entries(options.addictionSvcOverride).forEach(([svc, svcVals]) => {
+      const cleaned = { ...svcVals };
+      Object.keys(cleaned).forEach(k => {
+        if (cleaned[k] === '' || cleaned[k] === null || cleaned[k] === undefined) delete cleaned[k];
+      });
+      multiSvc[svc] = { ...(multiSvc[svc] || {}), addiction: cleaned };
+    });
+    userDatas.etc.multiSvc = multiSvc;
+  }
+
   // 兄弟追加の場合、コピーしないフィールドを削除
   if (options.brotherCreate) {
     delete userDatas.etc.addiction;
