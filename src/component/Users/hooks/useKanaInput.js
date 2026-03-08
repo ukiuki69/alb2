@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { llmApiCall } from '../../../modules/llmApiCall';
 
-const KANA_SYSTEM_ROLE = "日本人の読み仮名を教えてください。最近10年ぐらいで生まれた子どもの名前も考慮して下さい。シンプルに読み仮名だけ答えるようにしてください";
+// 名字用: 伝統的な読みを中心に返す
+const KANA_SYSTEM_ROLE_SURNAME = "日本語の姓のひらがな読み仮名を返す。一般的・伝統的な読み方を優先する。ひらがなのみ出力する。カタカナは使用しない。";
+// 名前用: キラキラネームを含めた現代的な読みも返す
+const KANA_SYSTEM_ROLE_GIVEN = "日本語の名前のひらがな読み仮名を返す。一般的な読み方に加え、近年のキラキラネームや創作読みも考慮する。ひらがなのみ出力する。カタカナは使用しない。";
+
+const getKanaSystemRole = (kanaField) =>
+  ['klname', 'pklname'].includes(kanaField) ? KANA_SYSTEM_ROLE_SURNAME : KANA_SYSTEM_ROLE_GIVEN;
+
 const MAX_KANA_EXCLUSIONS = 10;
 const MAX_KANA_CANDIDATES = 5;
 const KANA_FIELDS = ['klname', 'kfname', 'pklname', 'pkfname'];
@@ -127,13 +134,21 @@ const useKanaInput = ({ formValues, formValuesRef, formDispatch }) => {
 
       for (const [kanaKey, kanjiValue] of Object.entries(missingKanaMap)) {
         setKanaLoading(prev => ({ ...prev, [kanaKey]: true }));
+        const isSurname = ['klname', 'pklname'].includes(kanaKey);
+        const initPrompt = isSurname
+          ? `「${kanjiValue}」の読み仮名を1つ、ひらがなのみで返してください。`
+          : `「${kanjiValue}」の読み仮名を1つ、ひらがなのみで返してください。キラキラネームの読みも考慮してください。`;
         try {
           const response = await llmApiCall(
-            { prompt: kanjiValue, systemrole: KANA_SYSTEM_ROLE },
+            { prompt: initPrompt, systemrole: getKanaSystemRole(kanaKey) },
             'E232298', '', '', '', '', false
           );
-          if (response?.data?.response) {
+          console.log('[useKanaInput] init response', kanaKey, response?.data);
+          if (!response?.data?.success) {
+            console.warn('[useKanaInput] init API error', kanaKey, response?.data?.message);
+          } else if (response?.data?.response) {
             const kana = response.data.response.trim();
+            console.log('[useKanaInput] init kana', kanaKey, kana);
             kanaAutoValueRef.current[kanaKey] = kana;
             kanaEditedRef.current[kanaKey] = false;
             formDispatch({ type: 'SET_FIELD', name: kanaKey, value: kana });
@@ -273,21 +288,27 @@ const useKanaInput = ({ formValues, formValuesRef, formDispatch }) => {
       normalizedExcludeKanaList.map(e => normalizeKana(e)).filter(Boolean)
     );
     setKanaLoading(prev => ({ ...prev, [kanaField]: true }));
+    const isSurname = ['klname', 'pklname'].includes(kanaField);
     try {
       const prompt = [
-        '次の漢字氏名の読み仮名候補を5個考えてください。',
-        '必ずJSON配列のみで返答してください。例: ["たろう","じろう"]',
-        '候補は読み仮名だけにしてください。',
+        isSurname
+          ? `「${kanjiValue}」のひらがな読み仮名候補を5個、JSON配列のみで返してください。例: ["たなか","やまだ"]`
+          : `「${kanjiValue}」のひらがな読み仮名候補を5個、JSON配列のみで返してください。キラキラネームも含めてください。例: ["たろう","じろう"]`,
         normalizedExcludeKanaList.length > 0
-          ? `以下の読みは候補から除外してください: ${normalizedExcludeKanaList.join('、')}`
+          ? `以下の読みは除外してください: ${normalizedExcludeKanaList.join('、')}`
           : '',
-        `漢字名: ${kanjiValue}`,
       ].filter(Boolean).join('\n');
       const response = await llmApiCall(
-        { prompt, systemrole: KANA_SYSTEM_ROLE },
+        { prompt, systemrole: getKanaSystemRole(kanaField) },
         'E232298', '', '', '', '', false
       );
+      console.log('[useKanaInput] fetch response', kanaField, response?.data);
+      if (!response?.data?.success) {
+        console.warn('[useKanaInput] fetch API error', kanaField, response?.data?.message);
+        return;
+      }
       const rawResponse = response?.data?.response?.trim();
+      console.log('[useKanaInput] rawResponse', kanaField, rawResponse);
       if (!rawResponse) return;
 
       const candidates = parseKanaCandidates(rawResponse);
