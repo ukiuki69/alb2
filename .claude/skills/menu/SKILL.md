@@ -1,7 +1,6 @@
 ---
 name: menu
 description: 指示ファイルのメニューを表示・実行する。引数なしでメニュー表示、番号指定で対応するファイルの指示を実行。
-disable-model-invocation: true
 ---
 
 ## メニュー

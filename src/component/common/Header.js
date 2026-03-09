@@ -135,7 +135,7 @@ export const InitChecker = () => {
   }
   const allowList = [
     '/','/users/addnew','/upload/fscon', '/chep', '/test', '/Account/ch',
-    '/account', '/contactbook/setting/'
+    '/account', '/contactbook/setting/', '/users/transfer'
   ]
   // スケジュール関連のURLの時は、スケジュールデータが存在するかどうかを確認する
   // 利用者関連のURLでも同様の措置を行う
@@ -194,6 +194,11 @@ export const InitChecker = () => {
   }
   const monthStr = stdDate.slice(0, 4) + "年" + stdDate.slice(5, 7) + "月";
   if (!users.filter(e=>!e.delete).length){
+    const accountState = Array.isArray(account)
+      ? account
+      : (Array.isArray(allstate.accountLst) ? allstate.accountLst : []);
+    const sameHidAccounts = accountState.filter(acc => acc.hid === hid);
+    const hasMultipleAccounts = !(accountState.length === 1 && sameHidAccounts.length === 1);
     return (
       <div style={style}>
         <div style={{padding: 8, paddingBottom: 24, lineHeight: 1.6}}>
@@ -212,6 +217,17 @@ export const InitChecker = () => {
           </Button>
 
         </div>
+        {hasMultipleAccounts && (
+          <div style={{marginTop: 16}}>
+            <Button
+              onClick={()=>{history.push('/users/transfer')}}
+              variant='contained'
+              color='secondary'
+            >
+              他事業所から利用者をコピー
+            </Button>
+          </div>
+        )}
         {/* <div style={{marginTop: 64}}>
           <Button
             onClick={()=>{history.push('/upload/fscon')}}

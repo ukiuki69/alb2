@@ -213,6 +213,12 @@ const SupportContentTable = ({content}) => {
           <td>{safeBrtoLf(dt["支援内容"])}</td>
           <td>{safeBrtoLf(dt["達成期間"])}ヶ月</td>
         </tr>
+        {dt["留意事項"] && (
+          <tr>
+            <th style={{width: '60px'}}>留意事項</th>
+            <td colSpan={3}>{safeBrtoLf(dt["留意事項"])}</td>
+          </tr>
+        )}
         {categoryStr.trim() && (
           <tr>
             <td colSpan={4}>五領域との関係性：{categoryStr}</td>
@@ -263,6 +269,12 @@ const SpGoalCard = ({ dt, idx, classes }) => {
           <>
             <div className={classes.spGoalSubLabel}>支援内容</div>
             <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{safeBrtoLf(dt["支援内容"])}</div>
+          </>
+        )}
+        {dt["留意事項"] && (
+          <>
+            <div className={classes.spGoalSubLabel}>留意事項</div>
+            <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{safeBrtoLf(dt["留意事項"])}</div>
           </>
         )}
         {dt["達成期間"] && (
@@ -337,6 +349,7 @@ export const PersonalSupportHohouSheet = (props) => {
         <SpFieldBlock label="短期目標（内容・期間等）" classes={classes}>
           {safeBrtoLf(adjustedContent["短期目標"])}
         </SpFieldBlock>
+
 
         {Array.isArray(goals) && goals.length > 0 && (
           <div className={classes.spSection}>

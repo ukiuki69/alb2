@@ -1,22 +1,5 @@
 {
     "editor.rulers": [80, 100],
     "python.defaultInterpreterPath": "/usr/bin/python3",
-    "python.pythonPath": "/usr/bin/python3",
-    "workbench.colorCustomizations": {
-        // 選択されているタブの背景色を少し明るく、または目立つ色にする
-        "tab.activeBackground": "#4b4b4b", 
-        
-        // 選択されているタブの文字色を強調（白など）
-        "tab.activeForeground": "#ffffff",
-        
-        // 選択されていない（非アクティブ）タブの文字色を暗くして沈ませる
-        "tab.inactiveForeground": "#808080",
-        
-        // 選択中のタブの上部にアクセントカラーの線を引く
-        "tab.activeBorderTop": "#007acc",
-
-        // 変更があるタブのインジケータ（丸い点）の色を個別に設定する場合
-        "tab.activeModifiedBorder": "#ffffff",
-        "tab.inactiveModifiedBorder": "#808080"
-    }
+    "python.pythonPath": "/usr/bin/python3"
 }

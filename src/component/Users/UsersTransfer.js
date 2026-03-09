@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import {
@@ -146,6 +146,11 @@ const UsersTransfer = () => {
   const [checked, setChecked] = useState({});
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [transferring, setTransferring] = useState(false);
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; };
+  }, []);
 
   // bid → sbname のマップ
   const sbnameMap = {};
@@ -185,9 +190,9 @@ const UsersTransfer = () => {
         return String(a.kana || a.name || '').localeCompare(String(b.kana || b.name || ''), 'ja');
       });
 
-      setOtherOfficeUsers(filtered);
+      if (isMounted.current) setOtherOfficeUsers(filtered);
     } finally {
-      setLoading(false);
+      if (isMounted.current) setLoading(false);
     }
   }, [hid, bid, stdDate, accountLst, users]);
 
@@ -243,9 +248,9 @@ const UsersTransfer = () => {
       if (hasAutoSort) {
         dispatch(Actions.sortUsersAsync());
       }
-      history.push('/users');
+      if (isMounted.current) history.push('/users');
     } finally {
-      setTransferring(false);
+      if (isMounted.current) setTransferring(false);
     }
   };
 
@@ -366,7 +371,7 @@ const UsersTransfer = () => {
           <DialogTitle>コピーの確認</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              {checkedUsers.length}人のユーザーは当月付にて移管します、よろしいですか？
+              {checkedUsers.length}人のユーザーは当月付にてこの事業所にコピーします、よろしいですか？
             </DialogContentText>
           </DialogContent>
           <DialogActions>
@@ -376,7 +381,7 @@ const UsersTransfer = () => {
               style={{ color: red[700] }}
               disabled={transferring}
             >
-              移管する
+              コピーする
             </Button>
           </DialogActions>
         </Dialog>
