@@ -6,6 +6,26 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3441 2026/03/09
+### 変更ファイル
+- src/component/Billing/blMakeData2024.js
+- src/component/Users/UserEdit2026.js
+- src/component/Users/UserEdit2026Parts.js
+- src/component/Users/hooks/useKanaInput.js（新規）
+- src/component/Users/utils/upperLimitUtils.js（新規）
+- src/component/Users/utils/userEditSubmit.js
+- src/modules/addictionUtils.js
+
+### 主な変更内容
+1. blMakeData2024: kihongensan（基本減算）を syoguu（処遇改善加算）より前に処理するよう itemTotal をソートし、2回の syoguuKaizenAndSantei 呼び出し間での userSanteiTotal 不整合（ichiwari ≠ userSanteiTotal × 0.1）を解消（stdDate >= 2026-02-01 の場合のみ適用）
+2. blMakeData2024: ソート比較関数を数値優先度ベースに修正（推移律を満たさない return 0 多用を解消、優先度: 0:tokuchi → 1:kihongensan → 2:その他 → 3:syoguu）
+3. UserEdit2026 加算読み書きを ByUserAddictionNoDialog と統一: schedule（今月）を優先して読み込み、マルチサービス時に etc.addiction も更新するよう変更
+4. カナ入力・上限管理ユーティリティをフック/ファイルに分割リファクタリング（useKanaInput → hooks/useKanaInput.js、上限管理 → upperLimitUtils.js）
+5. useKanaInput: systemrole とプロンプト両方に「ひらがなのみ出力」を明示し、カタカナ混入問題を修正
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3440 2026/03/07
 ### 変更ファイル
 - .gitignore
