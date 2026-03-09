@@ -6,6 +6,16 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3442 2026/03/09
+### 変更ファイル
+- src/component/Users/GradeAdvanceHandler.js
+
+### 主な変更内容
+1. GradeAdvanceHandlerInner: 動作条件をパーミッション90以上に制限（parsePermission でパーミッションを取得し、90未満の場合は null を返す）
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3441 2026/03/09
 ### 変更ファイル
 - src/component/Billing/blMakeData2024.js
