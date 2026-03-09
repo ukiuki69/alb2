@@ -9,7 +9,7 @@ import { getLS, setLS } from '../../modules/localStrageOprations';
 import { getAge } from '../../modules/dateUtils';
 import { escapeSqlQuotes } from '../../modules/escapeSqlQuotes';
 import { univApiCall } from '../../albCommonModule';
-import { getCookeis, getLodingStatus, shortWord } from '../../commonModule';
+import { getCookeis, getLodingStatus, parsePermission, shortWord } from '../../commonModule';
 import * as Actions from '../../Actions';
 
 const JIHATSU = '児童発達支援';
@@ -217,7 +217,9 @@ const GradeAdvanceHandlerInner = () => {
   const allState = useSelector(state => state);
   if (!getLodingStatus(allState).loaded) return null;
 
-  const { serviceItems, users } = allState;
+  const { serviceItems, users, account } = allState;
+  const permission = parsePermission(account)[0][0];
+  if (permission < 90) return null;
   if (!Array.isArray(serviceItems) || !serviceItems.includes(JIHATSU)) return null;
 
   const targetUsers = (users || []).filter(u =>
