@@ -22,3 +22,4 @@ src/rules/
 # Misc
 deploylog.txt
 *.log
+json.json
