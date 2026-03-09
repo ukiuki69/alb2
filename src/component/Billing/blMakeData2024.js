@@ -1632,14 +1632,16 @@ const syoguuKaizenAndSantei = (tmpSch, masterRec, users, classroom = '', twice, 
     // 特地加算を最初に処理する
     // 2026-02-01以降: kihongensan(基本減算)をsyoguu(処遇改善)より前に処理することで
     // 2回のsyoguuKaizenAndSantei呼び出し間のuserSanteiTotal不整合を防ぐ
+    // 数値優先度で一貫した比較関数を使用（推移律を満たす）
+    // 0:tokuchi → 1:kihongensan → 2:その他 → 3:syoguu
     if (stdDate >= '2026-02-01') {
-      itemTotal.sort((a, b) => {
-        if (a.method === 'tokuchi' && b.method !== 'tokuchi') return -1;
-        if (b.method === 'tokuchi' && a.method !== 'tokuchi') return 1;
-        if (a.method === 'kihongensan' && b.method === 'syoguu') return -1;
-        if (a.method === 'syoguu' && b.method === 'kihongensan') return 1;
-        return 0;
-      });
+      const methodPriority = (f) => {
+        if (f.method === 'tokuchi') return 0;
+        if (f.method === 'kihongensan') return 1;
+        if (f.method === 'syoguu') return 3;
+        return 2;
+      };
+      itemTotal.sort((a, b) => methodPriority(a) - methodPriority(b));
     } else {
       itemTotal.sort(e=>e.method === 'tokuchi'? -1: 1);
     }
