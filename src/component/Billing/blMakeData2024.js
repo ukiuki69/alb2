@@ -1608,7 +1608,7 @@ const totalizeItems = (tmpSch, masterRec, users, schedule, stdDate, classroom = 
 }
 // 処遇改善のモジュールを独立化
 // userSanteiTotalもここで出している
-const syoguuKaizenAndSantei = (tmpSch, masterRec, users, classroom = '', twice) => {
+const syoguuKaizenAndSantei = (tmpSch, masterRec, users, classroom = '', twice, stdDate) => {
   Object.keys(tmpSch).map(e=>{
     const thisUser = comMod.getUser(e, users);
     const isMtu = amdcm.classroomCount(thisUser) > 1;
@@ -1630,7 +1630,19 @@ const syoguuKaizenAndSantei = (tmpSch, masterRec, users, classroom = '', twice) 
     });
     // ユーザーごとの単位数の合計を算定し処遇改善加算を求める
     // 特地加算を最初に処理する
-    itemTotal.sort(e=>e.method === 'tokuchi'? -1: 1);
+    // 2026-02-01以降: kihongensan(基本減算)をsyoguu(処遇改善)より前に処理することで
+    // 2回のsyoguuKaizenAndSantei呼び出し間のuserSanteiTotal不整合を防ぐ
+    if (stdDate >= '2026-02-01') {
+      itemTotal.sort((a, b) => {
+        if (a.method === 'tokuchi' && b.method !== 'tokuchi') return -1;
+        if (b.method === 'tokuchi' && a.method !== 'tokuchi') return 1;
+        if (a.method === 'kihongensan' && b.method === 'syoguu') return -1;
+        if (a.method === 'syoguu' && b.method === 'kihongensan') return 1;
+        return 0;
+      });
+    } else {
+      itemTotal.sort(e=>e.method === 'tokuchi'? -1: 1);
+    }
     itemTotal.map(f => {
       // 特地加算を追加
       if (f.method === 'tokuchi' && !twice) {
@@ -3748,7 +3760,7 @@ export const setBillInfoToSch = (prms, userlist = []) => {
   setMonitorDate(schTmp, stdDate);
 
   // 処遇改善加算などもここで行う
-  syoguuKaizenAndSantei(schTmp, masterRec, users);
+  syoguuKaizenAndSantei(schTmp, masterRec, users, '', undefined, stdDate);
   // MTUが存在するか
   // let svcByUserMax = 0;
   // users.forEach(e => {
@@ -3761,7 +3773,7 @@ export const setBillInfoToSch = (prms, userlist = []) => {
   if (classrooms.length > 1 && existMtu){
     classrooms.map(e=>{
       totalizeItems(schTmp, masterRec, users, schedule, stdDate, e);
-      syoguuKaizenAndSantei(schTmp, masterRec, users, e);
+      syoguuKaizenAndSantei(schTmp, masterRec, users, e, undefined, stdDate);
     })
   }
   // 放デイに残った児発無償化を無効化する
@@ -3783,11 +3795,11 @@ export const setBillInfoToSch = (prms, userlist = []) => {
     recalcBrosParams(schTmp, users, schedule);
   }
   // 処遇改善再計算
-  syoguuKaizenAndSantei(schTmp, masterRec, users, '', true);
+  syoguuKaizenAndSantei(schTmp, masterRec, users, '', true, stdDate);
   // syoguuKaizenAndSantei(schTmp, masterRec, users, classroom, true);
   if (classrooms.length > 1 && existMtu){
     classrooms.map(e=>{
-      syoguuKaizenAndSantei(schTmp, masterRec, users, e, true);
+      syoguuKaizenAndSantei(schTmp, masterRec, users, e, true, stdDate);
     })
   }
   // 単位数が計上されないアイテムを削除
