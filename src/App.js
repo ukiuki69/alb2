@@ -97,6 +97,7 @@ import FileUploadPage from './component/common/FileUploadPage';
 import SchUserActualCostList from './component/schedule/SchUserActualCostList';
 import { KEIKAKU_SOUDAN, SYOUGAI_SOUDAN } from './modules/contants';
 import UsersTransfer from './component/Users/UsersTransfer';
+import UserRegistrationMonthEditor from './component/Users/UserRegistrationMonthEditor';
 import GradeAdvanceHandlerGate from './component/Users/GradeAdvanceHandler';
 
 const Billing = React.lazy(() => import('./component/Billing/Billing'));
@@ -248,6 +249,7 @@ class Main extends React.Component{
             <Route path='/users/timetable/' component={UsersTimeTable} />
             <Route path='/users/belongs/edit/:uid/' component={UsersCityAddressForm} />
             <Route path='/users/transfer' component={UsersTransfer} />
+            <Route path='/users/regmonth' component={UserRegistrationMonthEditor} />
             <Route path='/users/:p' props={this.props} component={Users} />
             <Route path='/users' props={this.props} component={Users} />
             <Route path='/schedule/cycle' component={Sch2} />

@@ -628,6 +628,7 @@ export const usersMenu = [
 ]
 export const usersExtMenu = [
   { link: "/users/transfer", label: "他事業所への利用者コピー" },
+  { link: "/users/regmonth", label: "利用者登録月変更" },
 ]
 
 if (seagull) {
