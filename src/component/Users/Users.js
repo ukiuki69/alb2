@@ -627,7 +627,7 @@ export const usersMenu = [
   { link: "/users/timetable/", label: "計画支援時間" },
 ]
 export const usersExtMenu = [
-  { link: "/users/transfer", label: "他事業所への利用者コピー" },
+  { link: "/users/transfer", label: "他事業所からの利用者コピー" },
   { link: "/users/regmonth", label: "利用者登録月変更" },
 ]
 

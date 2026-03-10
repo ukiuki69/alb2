@@ -497,7 +497,8 @@ const ExtMenu = (props) => {
         }}
         PaperProps={{
           style: {
-            width: '20ch',
+            width: 'auto',
+            minWidth: 'max-content',
           },
         }}
       >
@@ -510,7 +511,11 @@ const ExtMenu = (props) => {
             return true;
           })
           .map((menuItem={}) => (
-          <MenuItem key={menuItem.option || menuItem.label} onClick={() => handleClose(menuItem)}>
+          <MenuItem
+            key={menuItem.option || menuItem.label}
+            onClick={() => handleClose(menuItem)}
+            style={{whiteSpace: 'nowrap'}}
+          >
             {menuItem.option || menuItem.label}
           </MenuItem>
         ))}

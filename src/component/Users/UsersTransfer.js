@@ -279,7 +279,7 @@ const UsersTransfer = () => {
     <div>
       <LinksTab menu={usersMenu} />
       <div className={classes.root}>
-        <div className={classes.title}>他事業所への利用者コピー
+        <div className={classes.title}>他事業所からの利用者コピー
         </div>
         {isNoDisplayOnly ? (
           <div className={classes.noData}>表示するデータがありません</div>
