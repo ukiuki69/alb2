@@ -6,6 +6,26 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3443 2026/03/10
+### 変更ファイル
+- src/component/Users/UserRegistrationMonthEditor.js（新規）
+- src/component/Users/Users.js
+- src/component/Users/UsersTransfer.js
+- src/component/common/commonParts.js
+- src/component/reports/Sheets/PersonalSupportHohouSheet.js
+- src/App.js
+- .gitignore
+
+### 主な変更内容
+1. UserRegistrationMonthEditor 新規追加: fetchUsersHist で次月以降に登録された利用者を取得し、「複写」または「登録変更」で当月付に移動するコンポーネント。sendUsersIndex で全利用者の sindex を一括更新。App.js にルート（/users/regmonth）登録
+2. usersExtMenu に「利用者登録月変更」を追加、UsersTransfer のラベルを「他事業所からの利用者コピー」に修正
+3. commonParts ExtMenu: ドロップダウン幅を auto + min-content に変更・MenuItem に nowrap 追加（長いラベルの折り返し防止）
+4. PersonalSupportHohouSheet: 留意事項を支援目標ごとに表示（テーブル行・スマホカード両対応、記載がない場合は非表示）
+5. .gitignore: json.json を除外
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3442 2026/03/09
 ### 変更ファイル
 - src/component/Users/GradeAdvanceHandler.js
