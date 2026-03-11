@@ -532,8 +532,10 @@ const PlanMonitoringDetail = (props) => {
     
     if (t) {
       // <br>を\nに変換してからセット
-      setOriginInputs(processDeepBrToLf(t.content));
-      setInputs(processDeepBrToLf(t.content));
+      const loadedContent = processDeepBrToLf(t.content);
+      const signUrl = t.personalSupportContent?.signUrl;
+      setOriginInputs(signUrl ? { ...loadedContent, signUrl } : loadedContent);
+      setInputs(loadedContent);
       setDateDisabled(!!(t.content && t.content['実施日'] && t.content['実施日'].toString().trim() !== ''));
     } else {
       setOriginInputs(initialValues);
@@ -1189,18 +1191,6 @@ const PlanMonitoringDetail = (props) => {
           {FieldRender('作成者')}
           {/* {FieldRender('作成回数')} */}
         </div>
-        {/* <div className="fpRow">
-        </div> */}
-        <div className="fpRow">{FieldRender('長期目標')}</div>
-        {psDisp('長期目標')}
-        <div className="fpRow">{FieldRender('短期目標')}</div>
-        {psDisp('短期目標')}
-        <div className="fpRow">{FieldRender('本人の希望')}</div>
-        {psDisp('本人意向')}
-        <div className="fpRow">{FieldRender('ご家族の希望')}</div>
-        {psDisp('家族意向')}
-        <div className="fpRow">{FieldRender('関係者の希望')}</div>
-        <div className="fpRow">{FieldRender('備考')}</div>
         {isDev && showSignSection && (
           <div className="fpRow">
             {signRequireEnabled && canRequestSign && (
@@ -1226,6 +1216,18 @@ const PlanMonitoringDetail = (props) => {
             )}
           </div>
         )}
+        {/* <div className="fpRow">
+        </div> */}
+        <div className="fpRow">{FieldRender('長期目標')}</div>
+        {psDisp('長期目標')}
+        <div className="fpRow">{FieldRender('短期目標')}</div>
+        {psDisp('短期目標')}
+        <div className="fpRow">{FieldRender('本人の希望')}</div>
+        {psDisp('本人意向')}
+        <div className="fpRow">{FieldRender('ご家族の希望')}</div>
+        {psDisp('家族意向')}
+        <div className="fpRow">{FieldRender('関係者の希望')}</div>
+        <div className="fpRow">{FieldRender('備考')}</div>
         {/* グループ「支援目標」のレンダリング */}
         <div className="groupSection">
           <h3 className={classes.groupTitle}>達成目標と経過</h3>

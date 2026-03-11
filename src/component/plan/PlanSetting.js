@@ -81,16 +81,16 @@ const PlanSettingMain = () => {
     dispatch(setSnackMsg('設定を保存しました。'));
   };
   const isDev = permissionCheckTemporary(PERMISSION_DEVELOPER, account);
-  if (!isDev) {
-    return (
-      <>
-        <LinksTab menu={planMenu} />
-        <div className={classes.root} style={{ textAlign: 'center' }}>
-          ただいま準備中です
-        </div>
-      </>
-    );
-  }
+  // if (!isDev) {
+  //   return (
+  //     <>
+  //       <LinksTab menu={planMenu} />
+  //       <div className={classes.root} style={{ textAlign: 'center' }}>
+  //         ただいま準備中です
+  //       </div>
+  //     </>
+  //   );
+  // }
   return (
     <>
       <LinksTab menu={planMenu} />

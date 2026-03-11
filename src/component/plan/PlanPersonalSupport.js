@@ -742,8 +742,9 @@ const PlanPersonalSupportDetail = (props) => {
         }
       }
 
-      setOriginInputs(processedContent);
-      setInputs(processedContent);
+      const { signUrl: signUrlFromContent, ...contentWithoutSignUrl } = processedContent;
+      setOriginInputs(signUrlFromContent ? { ...contentWithoutSignUrl, signUrl: signUrlFromContent } : processedContent);
+      setInputs(contentWithoutSignUrl);
       // 作成日が有効な値であれば変更不可にする
       const hasValidCreatedDate = t.content && t.content['作成日'] && t.content['作成日'].toString().trim() !== '';
       setDateDisabled(hasValidCreatedDate);

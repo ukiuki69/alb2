@@ -14,6 +14,8 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { handleSelectInputAuto } from '../../albCommonModule';
 import ControlPointIcon from '@material-ui/icons/ControlPoint';
 import { planMenu, PlanPrintButton, UserInfoDisplay, PlanDateChangeCopy, deepEqual } from './planCommonPart';
+import { permissionCheckTemporary } from '../../modules/permissionCheck';
+import { PERMISSION_DEVELOPER } from '../../modules/contants';
 import { processDeepBrToLf, processDeepLfToBr } from '../../modules/newlineConv';
 import { cleanSpecialCharacters } from '../../modules/cleanSpecialCharacters';
 import { getLS, setLS } from '../../modules/localStrageOprations';
@@ -279,9 +281,9 @@ const PlanMonitoringHohouDetail = (props) => {
   const classes = useStyles();
   const dispatch = useDispatch();
   const allState = useSelector(s => s);
-  const { hid, bid, users } = allState;
-  const { 
-    uid, suid, allPersonalData, setAllPersonalData, snack, setSnack, 
+  const { hid, bid, users, account } = allState;
+  const {
+    uid, suid, allPersonalData, setAllPersonalData, snack, setSnack,
     allPersonalSupportData, setAllPersonalSupportData, withSideSection
   } = props;
   const history = useHistory();
@@ -294,6 +296,7 @@ const PlanMonitoringHohouDetail = (props) => {
   const effectiveUid = urlUid || uid || suid;
   
   const user = getUser(effectiveUid, users);
+  const isDev = permissionCheckTemporary(PERMISSION_DEVELOPER, account);
   const uids = convUID(uid).str;
   const required = true;
   const initialValues = getInitialValues();
@@ -303,6 +306,9 @@ const PlanMonitoringHohouDetail = (props) => {
   const [dateDisabled, setDateDisabled] = useState(false);
   const createdBase = originInputs?.['実施日'] || inputs?.['実施日'];
   const [errors, setErrors] = useState({});
+  const canRequestSign = user?.ext?.line?.auth?.checked === true && !!user?.ext?.line?.id;
+  const signRequireEnabled = allState.com?.ext?.usersPlanSettings?.signRequire ?? false;
+  const showSignSection = (signRequireEnabled && canRequestSign) || !!originInputs?.signUrl;
 
   const inputValueRef = useRef({});
   const groupInputValueRef = useRef({});
@@ -349,8 +355,11 @@ const PlanMonitoringHohouDetail = (props) => {
     }
     
     if (t) {
-      setOriginInputs(processDeepBrToLf(t.content));
-      setInputs(processDeepBrToLf(t.content));
+      const loadedContent = processDeepBrToLf(t.content);
+      // signUrl は personalSupportContent に格納されるため、表示用に originInputs へマージ
+      const signUrl = t.personalSupportContent?.signUrl;
+      setOriginInputs(signUrl ? { ...loadedContent, signUrl } : loadedContent);
+      setInputs(loadedContent);
       setDateDisabled(!!(t.content && t.content['実施日'] && t.content['実施日'].toString().trim() !== ''));
     } else {
       setOriginInputs(initialValues);
@@ -842,6 +851,31 @@ const PlanMonitoringHohouDetail = (props) => {
           {FieldRender('実施日')}
           {FieldRender('作成者')}
         </div>
+        {isDev && showSignSection && (
+          <div className="fpRow">
+            {signRequireEnabled && canRequestSign && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={inputs?.['電子サイン依頼'] === true}
+                    onChange={(e) => setInputs(prev => ({ ...prev, '電子サイン依頼': e.target.checked }))}
+                    color="primary"
+                    disabled={!!originInputs?.signUrl}
+                  />
+                }
+                label="電子サイン依頼"
+              />
+            )}
+            {originInputs?.signUrl && (
+              <div style={{ display: 'flex', alignItems: 'center', marginLeft: 8 }}>
+                <img
+                  src={originInputs.signUrl} alt="電子サイン"
+                  style={{ height: 32, border: '1px solid #eee', borderRadius: 4 }}
+                />
+              </div>
+            )}
+          </div>
+        )}
         <div className="fpRow">{FieldRender('長期目標')}</div>
         {psDisp('長期目標')}
         <div className="fpRow">{FieldRender('短期目標')}</div>

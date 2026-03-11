@@ -349,8 +349,10 @@ const PlanMonitoringSenmonDetail = (props) => {
     }
     
     if (t) {
-      setOriginInputs(processDeepBrToLf(t.content));
-      setInputs(processDeepBrToLf(t.content));
+      const loadedContent = processDeepBrToLf(t.content);
+      const signUrl = t.personalSupportContent?.signUrl;
+      setOriginInputs(signUrl ? { ...loadedContent, signUrl } : loadedContent);
+      setInputs(loadedContent);
       setDateDisabled(!!(t.content && t.content['実施日'] && t.content['実施日'].toString().trim() !== ''));
     } else {
       setOriginInputs(initialValues);

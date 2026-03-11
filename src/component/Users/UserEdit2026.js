@@ -24,8 +24,8 @@ import { univApiCall } from '../../albCommonModule';
 import SnackMsg from '../common/SnackMsg';
 import SchLokedDisplay from '../common/SchLockedDisplay';
 import { GetNextHist } from './Users';
-import { NextUserDisp } from './UserEditNoDialog';
 import { UnivCheckbox } from '../common/univFormParts';
+import UserHistNav from './UserHistNav';
 
 import { buildInitialFormValues } from './utils/userEditDefaults';
 import { submitUserEdit } from './utils/userEditSubmit';
@@ -223,8 +223,8 @@ const UserEdit2026 = () => {
   const pi = (v) => parseInt(v);
   const sindexMax = users.reduce((v, e) => (pi(e.sindex) > v ? v = pi(e.sindex) : v), 0);
   const thisUser = useMemo(
-    () => (uids ? comMod.getUser(uids, users, nextUsers) : EMPTY_USER),
-    [uids, users, nextUsers]
+    () => (uids ? comMod.getUser(uids, users) : EMPTY_USER),
+    [uids, users]
   );
 
   // ---- Form state (useReducer) ----
@@ -433,11 +433,21 @@ const UserEdit2026 = () => {
   const contractRowVolumeStyle = { width: 112 };
   const contractRowLineNoStyle = { width: 112 };
 
-  // 次月情報表示
-  const today = new Date();
-  const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const stdDateObj = new Date(stdDate);
-  const showNextChangeButton = thisUser.next && (stdDateObj >= lastMonthStart);
+  // stdDate が今から3ヶ月以内のとき保存時に「以降に反映するか」を確認する
+  const [futureApplyDialog, setFutureApplyDialog] = useState({ open: false, pendingOptions: null });
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+  const showFutureApplyDialog = editOn && new Date(stdDate) >= threeMonthsAgo;
+
+  const handleSubmitWithFutureCheck = (e) => {
+    if (showFutureApplyDialog) {
+      if (e && e.preventDefault) e.preventDefault();
+      setFutureApplyDialog({ open: true, pendingOptions: {} });
+    } else {
+      handleSubmit(e);
+    }
+  };
+
   const isSoudan = soudanServiceNames.includes(curService);
 
   // 自治体の独自上限
@@ -880,6 +890,12 @@ const UserEdit2026 = () => {
               {lastUpdateStr}
             </div>
           </div>
+          {editOn && (
+            <div style={{ display: 'flex', alignItems: 'center', margin: '12px 0 8px', gap: 8,  }}>
+              <span style={{ fontSize: 12, color: '#888', whiteSpace: 'nowrap',  }}>修正履歴</span>
+              <UserHistNav uid={uids} stdDate={thisUser.date || stdDate} />
+            </div>
+          )}
 
           <div className='formBody' onKeyPress={keyHandler}>
             {/* 行1: 名前・かな・生年月日 */}
@@ -1167,9 +1183,15 @@ const UserEdit2026 = () => {
               </div>
 
             {/* 利用者別加算・請求設定 */}
-            <div className={classes.cntRow} style={defService.includes(',') ? { flexDirection: 'column' } : {}}>
-              {defService.includes(',')
-                ? defService.split(',').map(svc => {
+            {/* effectiveSvc: formValues.serviceが確定している場合はそちらを優先（新規作成時の動的反映） */}
+            {(() => {
+              const effectiveSvc = formValues.service && formValues.service !== '複数サービス'
+                ? formValues.service
+                : defService;
+              return (
+            <div className={classes.cntRow} style={effectiveSvc.includes(',') ? { flexDirection: 'column' } : {}}>
+              {effectiveSvc.includes(',')
+                ? effectiveSvc.split(',').map(svc => {
                     const isHohou = svc === HOHOU;
                     const btnColor = isHohou ? purple[800] : orange[800];
                     const svcDisplayList = Object.entries(addictionValuesBySvc[svc] ?? {})
@@ -1226,6 +1248,8 @@ const UserEdit2026 = () => {
                   )
               }
             </div>
+              );
+            })()}
 
             {/* 拡張設定 */}
             {extSetting && <>
@@ -1298,8 +1322,6 @@ const UserEdit2026 = () => {
             }
           </div>
 
-          <NextUserDisp thisUser={thisUser} showNextChangeButton={showNextChangeButton} />
-
           <div className={classes.buttonWrapper}>
             {editOn && enableDelete &&
               <mui.ButtonGP
@@ -1319,24 +1341,8 @@ const UserEdit2026 = () => {
               label='保存'
               type='submit'
               disabled={scheduleLocked}
-              onClick={handleSubmit}
+              onClick={handleSubmitWithFutureCheck}
             />
-            {showNextChangeButton &&
-              <Button
-                style={{ backgroundColor: indigo[600], color: '#fff' }}
-                variant='contained'
-                type='submit'
-                disabled={scheduleLocked}
-                onClick={(e) => handleSubmit(e, undefined, { updateFuture: 1 })}
-              >
-                次月以降も変更
-              </Button>
-            }
-            {showNextChangeButton &&
-              <div style={{ paddingTop: 4, fontSize: '.7rem', color: red[600] }}>
-                次月以降も変更をクリックすると、次月の情報も当月の内容で送信されます。利用者別加算などにご注意下さい。
-              </div>
-            }
           </div>
         </div>
       </div>
@@ -1461,7 +1467,10 @@ const UserEdit2026 = () => {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
             {ADDICTION_ITEMS.map(nameJp => {
               const dialogSvc = addictionDialogService || service;
-              const vis = getAddictionVisibility(nameJp, { uid: uids, dLayer: 1, service: addictionDialogService || undefined });
+              // 新規作成時はformValues.serviceをサービス特定に使う（'複数サービス'の場合は除外）
+              const formSvc = formValues.service && !formValues.service.includes(',') && formValues.service !== '複数サービス'
+                ? formValues.service : undefined;
+              const vis = getAddictionVisibility(nameJp, { uid: uids, dLayer: 1, service: addictionDialogService || formSvc || undefined });
               if (!vis.visible) return null;
               if (vis.disabled) return null;
               // 強度行動障害児支援加算９０日以内: 2024-11-01以降は日付入力
@@ -1506,6 +1515,36 @@ const UserEdit2026 = () => {
           <Button onClick={closeAddictionDialog}>キャンセル</Button>
           <Button color='primary' variant='contained' onClick={registerAddictionDialog}>
             登録
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 以降の記録への反映確認ダイアログ */}
+      <Dialog
+        open={futureApplyDialog.open}
+        onClose={() => setFutureApplyDialog(d => ({ ...d, open: false }))}
+        maxWidth='xs'
+      >
+        <DialogTitle>変更の反映範囲</DialogTitle>
+        <DialogContent>
+          この変更をこれ以降の情報に反映させますか？
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => {
+            setFutureApplyDialog(d => ({ ...d, open: false }));
+            handleSubmit(undefined, undefined, {});
+          }}>
+            このデータのみ
+          </Button>
+          <Button
+            color='primary'
+            variant='contained'
+            onClick={() => {
+              setFutureApplyDialog(d => ({ ...d, open: false }));
+              handleSubmit(undefined, undefined, { updateFuture: 1 });
+            }}
+          >
+            以降も反映
           </Button>
         </DialogActions>
       </Dialog>
