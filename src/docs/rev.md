@@ -6,6 +6,31 @@
 
 <!-- 新しい履歴をここに追記してください -->
 
+## rev.3444 2026/03/11
+### 変更ファイル
+- src/component/Users/UserHistNav.js（新規）
+- src/component/Users/utils/userDiff.js（新規）
+- src/component/Users/UserEdit2026.js
+- src/component/plan/PlanMonitoring.js
+- src/component/plan/PlanMonitoringHohou.js
+- src/component/plan/PlanMonitoringSenmon.js
+- src/component/plan/PlanPersonalSupport.js
+- src/component/plan/PlanPersonalSupportHohou.js
+- src/component/plan/PlanSenmonShien.js
+- src/component/plan/PlanSetting.js
+
+### 主な変更内容
+1. UserHistNav 新規追加: 利用者の修正履歴を年月テキストで横並び表示するコンポーネント。最大7件を最新順で表示し現在レコードを青色ボルドで強調。クリックで前バージョンとの差分ダイアログ（利用者名 さん YYYY年MM月の変更点）を表示
+2. userDiff 新規追加: 2つのユーザーオブジェクトを再帰的に比較するユーティリティ。etc 配下・片側 null でも再帰対応
+3. UserEdit2026: UserHistNav を修正履歴欄に組み込み（thisUser.date を基準に強調表示）・将来日付の変更時に「以降にも反映するか」ダイアログを追加
+4. PlanMonitoring: 電子サイン依頼チェックボックスを実施日直下に移動・signUrl を personalSupportContent からマージするよう修正
+5. PlanMonitoringHohou: 電子サイン依頼チェックボックス・サイン画像表示を追加（isDev 条件）・signUrl を personalSupportContent から取得
+6. PlanMonitoringSenmon / PlanPersonalSupport / PlanPersonalSupportHohou / PlanSenmonShien: signUrl が content 外に格納されている問題を修正し、originInputs のみにマージして inputs（保存用）には含めない形に統一
+7. PlanSetting: isDev ガードをコメントアウトし全ユーザーがアクセス可能に
+
+### 取り込まれたdev側の変更
+- なし
+
 ## rev.3443 2026/03/10
 ### 変更ファイル
 - src/component/Users/UserRegistrationMonthEditor.js（新規）
